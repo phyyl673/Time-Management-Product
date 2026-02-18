@@ -493,9 +493,48 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 0;
+    padding: 8px 0;
     font-size: 12px;
     color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .step-item:last-child { border-bottom: none; }
+  .step-check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    transition: all 0.15s;
+  }
+  .step-check:hover { border-color: var(--green); }
+  .step-check.checked {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+  .step-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .step-name {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .step-name.done {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+  .step-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 8px;
+    align-items: center;
   }
   .step-dot {
     width: 6px; height: 6px;
@@ -505,6 +544,83 @@
   }
   .step-dot.done { background: var(--green); }
   .step-week { font-size: 10px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+  .step-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .step-action-btn {
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .step-action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-light);
+  }
+  .step-add-form {
+    padding: 8px;
+    background: var(--surface3);
+    border-radius: 6px;
+    margin-top: 8px;
+    display: none;
+  }
+  .step-add-form.open { display: block; }
+  .step-form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .step-form-row:last-child { margin-bottom: 0; }
+  .step-form-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .step-form-input:focus { border-color: var(--accent); }
+  .step-form-date {
+    flex: 0 0 auto;
+    width: 140px;
+  }
+  .step-form-time {
+    flex: 0 0 auto;
+    width: 100px;
+  }
+  .step-form-btns {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .step-form-btn {
+    padding: 4px 12px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .step-form-btn-save {
+    background: var(--accent);
+    color: white;
+  }
+  .step-form-btn-save:hover { opacity: 0.9; }
+  .step-form-btn-cancel {
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .step-form-btn-cancel:hover { background: var(--surface3); }
 
   /* Shopping list */
   .shop-list {
@@ -559,12 +675,19 @@
   .add-input:focus { border-color: var(--accent); }
   .add-input::placeholder { color: var(--text-muted); }
   
-  input[type="date"] {
+  input[type="date"], select {
     cursor: pointer;
   }
   input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.6);
     cursor: pointer;
+  }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239299a8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
   }
 
   .add-btn {
@@ -1146,76 +1269,26 @@
         <div class="section-label" style="margin-bottom:12px">长期任务进度追踪</div>
 
         <div id="dueList">
-          <div class="due-item">
-            <div class="due-header">
-              <div>
-                <div class="due-title">ML Assignment 1</div>
-                <div class="due-date">📚 COMP4421 · 发布 Week 4 → 截止 Week 5</div>
-              </div>
-              <span class="tag tag-urgent">⚡ 紧急</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill fill-orange" style="width:50%"></div></div>
-            <div class="due-footer">
-              <div class="due-weeks">剩 3 天 · 进度 50%</div>
-              <div class="due-steps" onclick="toggleSteps('steps1',this)">查看步骤 ▾</div>
-            </div>
-            <div class="steps-list" id="steps1">
-              <div class="step-item"><div class="step-dot done"></div>理解题意与数据集<div class="step-week">Week 4 ✓</div></div>
-              <div class="step-item"><div class="step-dot done"></div>数据预处理与EDA<div class="step-week">Week 4 ✓</div></div>
-              <div class="step-item"><div class="step-dot"></div>训练模型与调参<div class="step-week">Today</div></div>
-              <div class="step-item"><div class="step-dot"></div>撰写报告<div class="step-week">Week 5</div></div>
-            </div>
-          </div>
-
-          <div class="due-item">
-            <div class="due-header">
-              <div>
-                <div class="due-title">数据库 Group Project</div>
-                <div class="due-date">📚 COMP3632 · 发布 Week 4 → 截止 Week 9</div>
-              </div>
-              <span class="tag tag-course">进行中</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill fill-green" style="width:15%"></div></div>
-            <div class="due-footer">
-              <div class="due-weeks">剩 5 周 · 进度 15%</div>
-              <div class="due-steps" onclick="toggleSteps('steps2',this)">查看步骤 ▾</div>
-            </div>
-            <div class="steps-list" id="steps2">
-              <div class="step-item"><div class="step-dot done"></div>确定项目主题与分工<div class="step-week">Week 4 ✓</div></div>
-              <div class="step-item"><div class="step-dot"></div>ER图设计<div class="step-week">Week 5-6</div></div>
-              <div class="step-item"><div class="step-dot"></div>数据库搭建与SQL<div class="step-week">Week 7</div></div>
-              <div class="step-item"><div class="step-dot"></div>前端界面开发<div class="step-week">Week 7-8</div></div>
-              <div class="step-item"><div class="step-dot"></div>测试与报告<div class="step-week">Week 8-9</div></div>
-            </div>
-          </div>
-
-          <div class="due-item">
-            <div class="due-header">
-              <div>
-                <div class="due-title">OS Final Report</div>
-                <div class="due-date">📚 COMP3511 · 截止 4月25日</div>
-              </div>
-              <span class="tag tag-life">充裕</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill fill-green" style="width:5%"></div></div>
-            <div class="due-footer">
-              <div class="due-weeks">剩 9 周 · 已开始思考</div>
-              <div class="due-steps" onclick="toggleSteps('steps3',this)">查看步骤 ▾</div>
-            </div>
-            <div class="steps-list" id="steps3">
-              <div class="step-item"><div class="step-dot"></div>确定题目方向<div class="step-week">Week 6</div></div>
-              <div class="step-item"><div class="step-dot"></div>文献调研<div class="step-week">Week 7</div></div>
-              <div class="step-item"><div class="step-dot"></div>主体写作<div class="step-week">Week 10-11</div></div>
-              <div class="step-item"><div class="step-dot"></div>修订提交<div class="step-week">Week 12</div></div>
-            </div>
-          </div>
+          <!-- Due任务将通过JS动态渲染 -->
         </div>
 
         <div class="section-label" style="margin-top:16px">快速添加长期任务</div>
-        <div class="add-item">
-          <input class="add-input" id="dueTitleInput" placeholder="任务标题，例如：OS Final Project">
-          <input class="add-input" id="dueMetaInput" placeholder="课程/说明，例如：COMP3511 · 截止 4月25日">
-          <button class="add-btn" onclick="addDueItem()">+ 添加</button>
+        <div class="add-item" style="flex-direction: column; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input class="add-input" id="dueTitleInput" placeholder="任务标题" style="flex: 1; min-width: 200px;">
+            <select class="add-input" id="dueCourseInput" style="flex: 0 0 auto; width: 140px; cursor: pointer;">
+              <option value="">选择课程</option>
+              <option value="COMP3511">COMP3511</option>
+              <option value="COMP3632">COMP3632</option>
+              <option value="COMP4421">COMP4421</option>
+              <option value="其他">其他</option>
+            </select>
+            <input type="date" class="add-input" id="dueDeadlineInput" style="flex: 0 0 auto; width: 160px;" placeholder="截止日期">
+            <button class="add-btn" onclick="addDueItem()">+ 添加</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
+            💡 添加任务后，点击"查看步骤"可以添加子任务并设置截止时间
+          </div>
         </div>
       </div>
 
@@ -1478,11 +1551,11 @@ function saveToStorage() {
       dayTasks: dayTasks,
       dayFocusTasks: dayFocusTasks, // 新增：按日期存储的待办任务
       todayTasks: serializeTodayTasks(),
-      dueItems: serializeDueItems(),
+      dueItems: serializeDueItems(), // 现在存储 dueTasks 对象
       jobItems: serializeJobItems(),
       shopItems: serializeShopItems(),
       journalEntries: serializeJournalEntries(),
-      version: '1.1'
+      version: '1.2'
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
@@ -1499,7 +1572,7 @@ function loadFromStorage() {
     if (data.dayTasks) dayTasks = data.dayTasks;
     if (data.dayFocusTasks) dayFocusTasks = data.dayFocusTasks; // 恢复按日期存储的待办任务
     if (data.todayTasks) restoreTodayTasks(data.todayTasks);
-    if (data.dueItems) restoreDueItems(data.dueItems);
+    if (data.dueItems) restoreDueItems(data.dueItems); // 恢复Due任务（包括子任务）
     if (data.jobItems) restoreJobItems(data.jobItems);
     if (data.shopItems) restoreShopItems(data.shopItems);
     if (data.journalEntries) restoreJournalEntries(data.journalEntries);
@@ -1609,46 +1682,156 @@ function restoreTodayTasks(data) {
 }
 
 function serializeDueItems() {
-  const list = document.getElementById('dueList');
-  if (!list) return [];
-  const items = [];
-  list.querySelectorAll('.due-item').forEach(item => {
-    const title = item.querySelector('.due-title')?.textContent || '';
-    const date = item.querySelector('.due-date')?.textContent || '';
-    const weeks = item.querySelector('.due-weeks')?.textContent || '';
-    const progressFill = item.querySelector('.progress-fill');
-    const progress = progressFill ? progressFill.style.width || '0%' : '0%';
-    const stepsId = item.querySelector('.steps-list')?.id || '';
-    const stepsOpen = item.querySelector('.steps-list')?.classList.contains('open') || false;
-    items.push({ title, date, weeks, progress, stepsId, stepsOpen, html: item.innerHTML });
-  });
-  return items;
+  // 现在使用 dueTasks 数据结构
+  return dueTasks;
 }
 
 function restoreDueItems(items) {
+  if (!items || Object.keys(items).length === 0) {
+    // 初始化示例任务
+    initDefaultDueTasks();
+    return;
+  }
+  
+  dueTasks = items;
+  
+  // 重新渲染所有Due任务
   const list = document.getElementById('dueList');
-  if (!list || !items.length) return;
+  if (!list) return;
   
-  // 只恢复用户添加的，保留初始的3个示例
-  const existingCount = list.querySelectorAll('.due-item').length;
-  if (existingCount <= 3 && items.length <= 3) return; // 如果都是初始数据，不覆盖
+  // 清空列表并重新渲染
+  list.innerHTML = '';
   
-  // 如果用户有添加新数据，替换整个列表
-  if (items.length > 3) {
+  Object.keys(dueTasks).forEach(dueTaskId => {
+    const task = dueTasks[dueTaskId];
+    renderDueItem(task);
+  });
+}
+
+function initDefaultDueTasks() {
+  // 如果已经有数据了，不重复初始化
+  if (dueTasks && Object.keys(dueTasks).length > 0) {
+    return;
+  }
+  
+  // 初始化3个示例任务
+  const defaultTasks = {
+    'dueDefault1': {
+      id: 'dueDefault1',
+      title: 'ML Assignment 1',
+      course: 'COMP4421',
+      deadline: '2025-02-22',
+      steps: [
+        { id: 'step1', name: '理解题意与数据集', date: '2025-02-10', time: '', completed: true },
+        { id: 'step2', name: '数据预处理与EDA', date: '2025-02-15', time: '', completed: true },
+        { id: 'step3', name: '训练模型与调参', date: '2025-02-19', time: '14:00', completed: false },
+        { id: 'step4', name: '撰写报告', date: '2025-02-21', time: '', completed: false }
+      ]
+    },
+    'dueDefault2': {
+      id: 'dueDefault2',
+      title: '数据库 Group Project',
+      course: 'COMP3632',
+      deadline: '2025-03-25',
+      steps: [
+        { id: 'step5', name: '确定项目主题与分工', date: '2025-02-10', time: '', completed: true },
+        { id: 'step6', name: 'ER图设计', date: '2025-02-24', time: '', completed: false },
+        { id: 'step7', name: '数据库搭建与SQL', date: '2025-03-10', time: '', completed: false },
+        { id: 'step8', name: '前端界面开发', date: '2025-03-17', time: '', completed: false },
+        { id: 'step9', name: '测试与报告', date: '2025-03-24', time: '', completed: false }
+      ]
+    },
+    'dueDefault3': {
+      id: 'dueDefault3',
+      title: 'OS Final Report',
+      course: 'COMP3511',
+      deadline: '2025-04-25',
+      steps: [
+        { id: 'step10', name: '确定题目方向', date: '2025-03-10', time: '', completed: false },
+        { id: 'step11', name: '文献调研', date: '2025-03-17', time: '', completed: false },
+        { id: 'step12', name: '主体写作', date: '2025-04-07', time: '', completed: false },
+        { id: 'step13', name: '修订提交', date: '2025-04-24', time: '', completed: false }
+      ]
+    }
+  };
+  
+  dueTasks = defaultTasks;
+  
+  // 渲染这些任务
+  const list = document.getElementById('dueList');
+  if (list) {
     list.innerHTML = '';
-    items.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'due-item';
-      el.innerHTML = item.html;
-      if (item.stepsOpen) {
-        const stepsEl = el.querySelector('.steps-list');
-        const stepsBtn = el.querySelector('.due-steps');
-        if (stepsEl) stepsEl.classList.add('open');
-        if (stepsBtn) stepsBtn.textContent = '收起 ▴';
-      }
-      list.appendChild(el);
+    Object.keys(defaultTasks).forEach(dueTaskId => {
+      renderDueItem(defaultTasks[dueTaskId]);
     });
   }
+}
+
+function renderDueItem(task) {
+  const list = document.getElementById('dueList');
+  if (!list) return;
+  
+  const dueTaskId = task.id;
+  const stepsId = 'steps' + dueTaskId;
+  
+  // 计算进度
+  const total = task.steps.length;
+  const completed = task.steps.filter(s => s.completed).length;
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+  // 计算剩余天数
+  const deadlineDate = new Date(task.deadline);
+  const today = new Date();
+  const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+  const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
+  
+  // 确定标签颜色
+  let tagClass = 'tag-course';
+  let tagText = '进行中';
+  let progressClass = 'fill-green';
+  if (diffDays < 0) {
+    tagClass = 'tag-urgent';
+    tagText = '⚡ 逾期';
+    progressClass = 'fill-red';
+  } else if (diffDays <= 3) {
+    tagClass = 'tag-urgent';
+    tagText = '⚡ 紧急';
+    progressClass = 'fill-orange';
+  } else if (diffDays <= 7) {
+    tagClass = 'tag-course';
+    tagText = '进行中';
+    progressClass = progress >= 50 ? 'fill-orange' : 'fill-red';
+  } else {
+    tagClass = 'tag-life';
+    tagText = '充裕';
+    progressClass = progress >= 80 ? 'fill-green' : progress >= 50 ? 'fill-orange' : 'fill-red';
+  }
+  
+  const deadlineStr = formatDeadlineDisplay(task.deadline);
+  
+  const item = document.createElement('div');
+  item.className = 'due-item';
+  item.setAttribute('data-due-id', dueTaskId);
+  item.innerHTML = `
+    <div class="due-header">
+      <div>
+        <div class="due-title">${task.title}</div>
+        <div class="due-date">📚 ${task.course} · 截止 ${deadlineStr}</div>
+      </div>
+      <span class="tag ${tagClass}">${tagText}</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${progress}%"></div></div>
+    <div class="due-footer">
+      <div class="due-weeks">${weeksText} · 进度 ${progress}%</div>
+      <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
+    </div>
+    <div class="steps-list" id="${stepsId}"></div>
+  `;
+  
+  list.appendChild(item);
+  
+  // 渲染子任务
+  renderDueSteps(dueTaskId);
 }
 
 function serializeJobItems() {
@@ -1997,6 +2180,19 @@ if (!hasLoadedData) {
   }
 }
 
+// 初始化Due任务（无论是否有保存的数据，都需要渲染）
+if (!dueTasks || Object.keys(dueTasks).length === 0) {
+  initDefaultDueTasks();
+} else {
+  // 如果已经有数据，确保渲染
+  const list = document.getElementById('dueList');
+  if (list && list.children.length === 0) {
+    Object.keys(dueTasks).forEach(dueTaskId => {
+      renderDueItem(dueTasks[dueTaskId]);
+    });
+  }
+}
+
 renderCalendar();
 // 默认显示今天的任务（使用恢复后的数据）
 const todayKey = '2025-02-19';
@@ -2013,6 +2209,14 @@ if (dateInput) {
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   dateInput.value = todayStr;
   dateInput.min = todayStr; // 不允许选择过去的日期
+}
+
+// 初始化Due截止日期选择器
+const dueDeadlineInput = document.getElementById('dueDeadlineInput');
+if (dueDeadlineInput) {
+  const today = new Date(2025, 1, 19);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  dueDeadlineInput.min = todayStr; // 不允许选择过去的日期
 }
 
 // === TABS ===
@@ -2088,6 +2292,274 @@ function toggleSteps(id, btn) {
   const el = document.getElementById(id);
   el.classList.toggle('open');
   btn.textContent = el.classList.contains('open') ? '收起 ▴' : '查看步骤 ▾';
+}
+
+// Due任务数据结构
+let dueTasks = {};
+
+function getDueTaskId(dueItemEl) {
+  // 从due-item元素中找到对应的任务ID
+  const stepsList = dueItemEl.querySelector('.steps-list');
+  return stepsList ? stepsList.id.replace('steps', 'due') : 'due' + Date.now();
+}
+
+function toggleStepCheck(stepId, dueTaskId) {
+  const step = document.getElementById(stepId);
+  if (!step) return;
+  
+  const check = step.querySelector('.step-check');
+  const name = step.querySelector('.step-name');
+  const isChecked = check.classList.contains('checked');
+  
+  check.classList.toggle('checked');
+  check.textContent = check.classList.contains('checked') ? '✓' : '';
+  
+  if (name) {
+    name.classList.toggle('done', check.classList.contains('checked'));
+  }
+  
+  // 更新数据结构
+  if (!dueTasks[dueTaskId]) return;
+  const task = dueTasks[dueTaskId];
+  const stepData = task.steps.find(s => s.id === stepId);
+  if (stepData) {
+    stepData.completed = check.classList.contains('checked');
+    updateDueProgress(dueTaskId);
+    saveToStorage();
+  }
+}
+
+function updateDueProgress(dueTaskId) {
+  const task = dueTasks[dueTaskId];
+  if (!task) return;
+  
+  const total = task.steps.length;
+  const completed = task.steps.filter(s => s.completed).length;
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+  // 更新进度条
+  const dueItem = document.querySelector(`[data-due-id="${dueTaskId}"]`);
+  if (dueItem) {
+    const progressFill = dueItem.querySelector('.progress-fill');
+    const progressText = dueItem.querySelector('.due-weeks');
+    
+    if (progressFill) {
+      progressFill.style.width = progress + '%';
+      // 根据进度设置颜色
+      progressFill.className = 'progress-fill';
+      if (progress >= 80) progressFill.classList.add('fill-green');
+      else if (progress >= 50) progressFill.classList.add('fill-orange');
+      else progressFill.classList.add('fill-red');
+    }
+    
+    if (progressText) {
+      const deadline = new Date(task.deadline);
+      const today = new Date();
+      const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+      const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
+      progressText.textContent = `${weeksText} · 进度 ${progress}%`;
+    }
+  }
+}
+
+function showStepForm(dueTaskId, stepId = null) {
+  const stepsList = document.querySelector(`[data-due-id="${dueTaskId}"] .steps-list`);
+  if (!stepsList) return;
+  
+  // 移除现有的表单
+  const existingForm = stepsList.querySelector('.step-add-form');
+  if (existingForm) existingForm.remove();
+  
+  const form = document.createElement('div');
+  form.className = 'step-add-form open';
+  
+  const stepData = stepId && dueTasks[dueTaskId] ? 
+    dueTasks[dueTaskId].steps.find(s => s.id === stepId) : null;
+  
+  form.innerHTML = `
+    <div class="step-form-row">
+      <input type="text" class="step-form-input" id="stepNameInput" placeholder="子任务名称" value="${stepData ? stepData.name : ''}">
+    </div>
+    <div class="step-form-row">
+      <input type="date" class="step-form-input step-form-date" id="stepDateInput" value="${stepData ? stepData.date : ''}">
+      <input type="time" class="step-form-input step-form-time" id="stepTimeInput" value="${stepData ? stepData.time : ''}">
+    </div>
+    <div class="step-form-btns">
+      <button class="step-form-btn step-form-btn-save" onclick="saveStep('${dueTaskId}', '${stepId || ''}')">保存</button>
+      <button class="step-form-btn step-form-btn-cancel" onclick="cancelStepForm('${dueTaskId}')">取消</button>
+    </div>
+  `;
+  
+  stepsList.appendChild(form);
+  document.getElementById('stepNameInput').focus();
+}
+
+function cancelStepForm(dueTaskId) {
+  const stepsList = document.querySelector(`[data-due-id="${dueTaskId}"] .steps-list`);
+  if (stepsList) {
+    const form = stepsList.querySelector('.step-add-form');
+    if (form) form.remove();
+  }
+}
+
+function saveStep(dueTaskId, stepId) {
+  const nameInput = document.getElementById('stepNameInput');
+  const dateInput = document.getElementById('stepDateInput');
+  const timeInput = document.getElementById('stepTimeInput');
+  
+  const name = nameInput.value.trim();
+  if (!name) {
+    showToast('请输入子任务名称');
+    return;
+  }
+  
+  if (!dueTasks[dueTaskId]) {
+    dueTasks[dueTaskId] = { steps: [] };
+  }
+  
+  const date = dateInput.value || '';
+  const time = timeInput.value || '';
+  
+  if (stepId) {
+    // 编辑现有子任务
+    const stepIndex = dueTasks[dueTaskId].steps.findIndex(s => s.id === stepId);
+    if (stepIndex !== -1) {
+      dueTasks[dueTaskId].steps[stepIndex] = {
+        ...dueTasks[dueTaskId].steps[stepIndex],
+        name,
+        date,
+        time
+      };
+    }
+  } else {
+    // 添加新子任务
+    const newStepId = 'step' + Date.now();
+    dueTasks[dueTaskId].steps.push({
+      id: newStepId,
+      name,
+      date,
+      time,
+      completed: false
+    });
+  }
+  
+  renderDueSteps(dueTaskId);
+  cancelStepForm(dueTaskId);
+  saveToStorage();
+  showToast(stepId ? '✓ 子任务已更新' : '✓ 子任务已添加');
+}
+
+function deleteStep(dueTaskId, stepId) {
+  if (!confirm('确定要删除这个子任务吗？')) return;
+  
+  if (dueTasks[dueTaskId]) {
+    dueTasks[dueTaskId].steps = dueTasks[dueTaskId].steps.filter(s => s.id !== stepId);
+    renderDueSteps(dueTaskId);
+    updateDueProgress(dueTaskId);
+    saveToStorage();
+    showToast('✓ 子任务已删除');
+  }
+}
+
+function renderDueSteps(dueTaskId) {
+  const stepsList = document.querySelector(`[data-due-id="${dueTaskId}"] .steps-list`);
+  if (!stepsList || !dueTasks[dueTaskId]) return;
+  
+  const task = dueTasks[dueTaskId];
+  const wasOpen = stepsList.classList.contains('open');
+  
+  // 保存表单状态
+  const form = stepsList.querySelector('.step-add-form');
+  const formHtml = form ? form.outerHTML : '';
+  
+  stepsList.innerHTML = '';
+  
+  if (task.steps && task.steps.length > 0) {
+    task.steps.forEach(step => {
+      const stepEl = document.createElement('div');
+      stepEl.className = 'step-item';
+      stepEl.id = step.id;
+      
+      const dateStr = step.date ? formatDateDisplay(step.date) : '未设置';
+      const timeStr = step.time || '';
+      const datetimeStr = step.date && step.time ? `${dateStr} ${timeStr}` : dateStr;
+      
+      stepEl.innerHTML = `
+        <div class="step-check ${step.completed ? 'checked' : ''}" onclick="toggleStepCheck('${step.id}', '${dueTaskId}')">${step.completed ? '✓' : ''}</div>
+        <div class="step-content">
+          <div class="step-name ${step.completed ? 'done' : ''}">${step.name}</div>
+          <div class="step-meta">
+            <span>📅 ${datetimeStr}</span>
+            ${step.date && step.time ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
+          </div>
+        </div>
+        <div class="step-actions">
+          <span class="step-action-btn" onclick="showStepForm('${dueTaskId}', '${step.id}')">编辑</span>
+          <span class="step-action-btn" onclick="deleteStep('${dueTaskId}', '${step.id}')">删除</span>
+        </div>
+      `;
+      
+      stepsList.appendChild(stepEl);
+    });
+  } else {
+    stepsList.innerHTML = '<div style="padding: 8px; color: var(--text-muted); font-size: 11px; text-align: center;">还没有子任务，点击下方"添加子任务"开始</div>';
+  }
+  
+  // 添加"添加子任务"按钮
+  const addBtn = document.createElement('div');
+  addBtn.style.cssText = 'margin-top: 8px; text-align: center;';
+  addBtn.innerHTML = `<span class="step-action-btn" onclick="showStepForm('${dueTaskId}')" style="display: inline-block;">+ 添加子任务</span>`;
+  stepsList.appendChild(addBtn);
+  
+  // 恢复展开状态
+  if (wasOpen) stepsList.classList.add('open');
+  
+  // 恢复表单
+  if (formHtml) {
+    stepsList.insertAdjacentHTML('beforeend', formHtml);
+  }
+}
+
+function importStepToCalendar(dueTaskId, stepId) {
+  const task = dueTasks[dueTaskId];
+  if (!task) return;
+  
+  const step = task.steps.find(s => s.id === stepId);
+  if (!step || !step.date) {
+    showToast('请先设置子任务的日期和时间');
+    return;
+  }
+  
+  // 将子任务添加到日历
+  const dateKey = step.date; // YYYY-MM-DD格式
+  if (!dayTasks[dateKey]) dayTasks[dateKey] = [];
+  
+  const timeStr = step.time || '09:00';
+  const endTime = step.time ? addTime(step.time, 1) : '10:00'; // 默认1小时
+  
+  dayTasks[dateKey].push({
+    time: `${timeStr} – ${endTime}`,
+    name: `${task.title} · ${step.name}`,
+    tag: `📚 ${task.course || 'Due任务'}`,
+    type: 'task'
+  });
+  
+  saveToStorage();
+  renderCalendar();
+  showToast(`✓ 已导入到 ${formatDateDisplay(dateKey)} 的日历`);
+}
+
+function addTime(timeStr, hours) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const date = new Date();
+  date.setHours(h + hours, m);
+  return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+}
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return `${m}月${d}日`;
 }
 
 // === SHOP ===
@@ -2204,37 +2676,108 @@ function quickAddKeydown(e) {
 // === DUE ADD ===
 function addDueItem() {
   const titleInput = document.getElementById('dueTitleInput');
-  const metaInput = document.getElementById('dueMetaInput');
+  const courseInput = document.getElementById('dueCourseInput');
+  const deadlineInput = document.getElementById('dueDeadlineInput');
+  
   const title = titleInput.value.trim();
-  const meta = metaInput.value.trim();
-  if (!title) return;
+  const course = courseInput.value;
+  const deadline = deadlineInput.value;
+  
+  if (!title) {
+    showToast('请输入任务标题');
+    return;
+  }
+  
+  if (!course) {
+    showToast('请选择课程');
+    return;
+  }
+  
+  if (!deadline) {
+    showToast('请选择截止日期');
+    return;
+  }
+  
   const list = document.getElementById('dueList');
   if (!list) return;
-  const stepsId = 'steps' + Date.now();
+  
+  const dueTaskId = 'due' + Date.now();
+  const stepsId = 'steps' + dueTaskId;
+  
+  // 计算剩余天数
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+  const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
+  
+  // 确定标签颜色
+  let tagClass = 'tag-course';
+  let tagText = '进行中';
+  if (diffDays < 0) {
+    tagClass = 'tag-urgent';
+    tagText = '⚡ 逾期';
+  } else if (diffDays <= 3) {
+    tagClass = 'tag-urgent';
+    tagText = '⚡ 紧急';
+  } else if (diffDays <= 7) {
+    tagClass = 'tag-course';
+    tagText = '进行中';
+  } else {
+    tagClass = 'tag-life';
+    tagText = '充裕';
+  }
+  
+  const deadlineStr = formatDeadlineDisplay(deadline);
+  
   const item = document.createElement('div');
   item.className = 'due-item';
+  item.setAttribute('data-due-id', dueTaskId);
   item.innerHTML = `
     <div class="due-header">
       <div>
         <div class="due-title">${title}</div>
-        <div class="due-date">${meta || '自定义长期任务'}</div>
+        <div class="due-date">📚 ${course} · 截止 ${deadlineStr}</div>
       </div>
-      <span class="tag tag-course">进行中</span>
+      <span class="tag ${tagClass}">${tagText}</span>
     </div>
     <div class="progress-bar"><div class="progress-fill fill-green" style="width:0%"></div></div>
     <div class="due-footer">
-      <div class="due-weeks">新建 · 进度 0%</div>
+      <div class="due-weeks">${weeksText} · 进度 0%</div>
       <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
     </div>
     <div class="steps-list" id="${stepsId}">
-      <div class="step-item"><div class="step-dot"></div>在这里写下你的分步骤计划<div class="step-week">自定义</div></div>
+      <div style="padding: 8px; color: var(--text-muted); font-size: 11px; text-align: center;">还没有子任务，点击下方"添加子任务"开始</div>
+      <div style="margin-top: 8px; text-align: center;">
+        <span class="step-action-btn" onclick="showStepForm('${dueTaskId}')" style="display: inline-block;">+ 添加子任务</span>
+      </div>
     </div>
   `;
+  
   list.appendChild(item);
+  
+  // 保存到数据结构
+  dueTasks[dueTaskId] = {
+    id: dueTaskId,
+    title: title,
+    course: course,
+    deadline: deadline,
+    steps: []
+  };
+  
   titleInput.value = '';
-  metaInput.value = '';
+  courseInput.value = '';
+  deadlineInput.value = '';
+  
   showToast('✓ 已添加到时间线');
-  saveToStorage(); // 保存Due任务
+  saveToStorage();
+}
+
+function formatDeadlineDisplay(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  return `${m}月${d}日 · ${weekNames[date.getDay()]}`;
 }
 
 // === JOB ADD ===
