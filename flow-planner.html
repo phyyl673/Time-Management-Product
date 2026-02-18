@@ -1482,6 +1482,7 @@
         <div class="add-item" style="margin-top:12px">
           <input class="add-input" id="shopInput" placeholder="随时记录要买的东西..." onkeydown="shopAddKeydown(event)">
           <button class="add-btn" onclick="shopAdd()">+ 添加</button>
+          <button class="add-btn" onclick="clearPurchasedItems()" style="background: var(--red-dim); border-color: rgba(248,113,113,0.3); color: var(--red);">🗑 清除已购</button>
         </div>
         <div style="margin-top:16px; padding: 12px; background: var(--surface2); border-radius: var(--radius); border: 1px solid var(--border);">
           <div style="font-size:11px; color: var(--text-muted); margin-bottom:6px">💡 去超市时系统会在今日聚焦中提醒你查看此清单</div>
@@ -1504,10 +1505,11 @@
 
     <div class="ai-messages" id="aiMessages">
       <div class="msg msg-ai">
-        <div class="msg-bubble">你好！我是 Flow AI 🎉 今天 Week 5，有几件事想提醒你：<br><br>
+        <div class="msg-bubble">你好！我是 Flow AI，由 Claude (Anthropic) 驱动 🎉<br><br>
         ⚡ <strong>ML Assignment 1</strong> 距截止还有 3 天，建议今天完成"训练模型"这步<br><br>
         📅 数据库 Group Project 刚开始，可以趁现在进度宽松规划好后续步骤<br><br>
-        告诉我任何大任务，我来帮你拆解然后自动排入日历 ✨</div>
+        告诉我任何大任务，我来帮你拆解然后自动排入日历 ✨<br><br>
+        <span style="font-size:10px;color:var(--text-muted)">💡 我能看到你所有任务的最新状态，回复会结合你的真实进度</span></div>
         <div class="msg-time">09:15</div>
       </div>
 
@@ -1623,6 +1625,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Core data structures (declared first to avoid temporal dead zone errors)
+let dueTasks = {};
+
 // === CALENDAR ===
 let currentDate = new Date(2025, 1, 1); // Feb 2025
 const today = 19;
@@ -2276,6 +2281,44 @@ function selectDay(el, d) {
   renderTodayFocus(dateKey); // 更新今日聚焦显示选中日期的任务
 }
 
+// 左侧日历下方：手动添加课程（时间、地点、课程名）
+function addManualCourse() {
+  const startInput = document.getElementById('addCourseStart');
+  const endInput = document.getElementById('addCourseEnd');
+  const nameInput = document.getElementById('addCourseName');
+  const locationInput = document.getElementById('addCourseLocation');
+  if (!startInput || !endInput || !nameInput) return;
+  const start = startInput.value;
+  const end = endInput.value;
+  const name = nameInput.value.trim();
+  const location = (locationInput && locationInput.value.trim()) || '';
+  if (!name) {
+    showToast('请输入课程名称');
+    return;
+  }
+  if (!start) {
+    showToast('请选择开始时间');
+    return;
+  }
+  const timeStr = end ? `${start} – ${end}` : start;
+  if (!dayTasks[selectedDateKey]) dayTasks[selectedDateKey] = [];
+  dayTasks[selectedDateKey].push({
+    time: timeStr,
+    name: name,
+    tag: location ? '📍 ' + location : '课程',
+    type: 'course'
+  });
+  startInput.value = '';
+  endInput.value = '';
+  nameInput.value = '';
+  if (locationInput) locationInput.value = '';
+  renderDaySchedule(selectedDateKey);
+  renderCalendar();
+  saveToStorage();
+  updateTopbar();
+  showToast('✓ 已添加课程到 ' + (selectedDateKey === getTodayKey() ? '今日' : document.getElementById('dayScheduleLabel').textContent));
+}
+
 // 初始化今日的示例任务到 dayFocusTasks（如果还没有数据）
 function initDefaultTasks() {
   const todayKey = '2025-02-19';
@@ -2334,6 +2377,11 @@ renderTodayFocus(todayKey); // 渲染今日聚焦
 const todayCell = document.querySelector('.cal-day.today');
 if (todayCell) todayCell.classList.add('selected');
 
+// Initialize PRD features
+updateTopbar();
+checkDueWarnings();
+updateShopCount();
+
 // 初始化日期选择器的默认值为今天
 const dateInput = document.getElementById('quickAddDate');
 if (dateInput) {
@@ -2357,6 +2405,34 @@ function switchTab(el, tabId) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// 顶部 badge 跳转：今日课表 / Due时间线 / 今日聚焦
+function getTodayKey() {
+  return formatDateKeyFromDate(new Date());
+}
+function goToTodaySchedule() {
+  selectedDateKey = getTodayKey();
+  currentDate = new Date();
+  renderCalendar();
+  renderDaySchedule(selectedDateKey);
+  renderTodayFocus(selectedDateKey);
+  const todayCell = document.querySelector('.cal-day.today');
+  if (todayCell) {
+    document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
+    todayCell.classList.add('selected');
+  }
+  showToast('已切换到今日课表');
+}
+function goToDueTimeline() {
+  const tab = document.getElementById('taskTab-timeline');
+  if (tab) switchTab(tab, 'timeline');
+  showToast('已切换到 Due 时间线');
+}
+function goToTodayFocus() {
+  const tab = document.getElementById('taskTab-today');
+  if (tab) switchTab(tab, 'today');
+  showToast('已切换到今日聚焦');
 }
 
 // === CHECK ===
@@ -2427,7 +2503,6 @@ function toggleSteps(id, btn) {
 }
 
 // Due任务数据结构
-let dueTasks = {};
 
 function getDueTaskId(dueItemEl) {
   // 从due-item元素中找到对应的任务ID
@@ -2858,6 +2933,7 @@ function shopAdd() {
   list.appendChild(item);
   input.value = '';
   showToast('✓ 已加入购物清单');
+  updateShopCount();
   saveToStorage(); // 保存购物清单
 }
 
@@ -2986,77 +3062,11 @@ function addDueItem() {
   renderDueItem(dueTasks[dueTaskId]);
   
   titleInput.value = '';
-  courseInput.value = '';
+  courseInput.value = '';  // 课程为自定义输入，清空即可
   deadlineInput.value = '';
   
   showToast('✓ 已添加到时间线');
   saveToStorage();
-}
-
-// 顶部 badge 跳转：今日课表 / Due时间线 / 今日聚焦
-function getTodayKey() {
-  return formatDateKeyFromDate(new Date());
-}
-function goToTodaySchedule() {
-  selectedDateKey = getTodayKey();
-  currentDate = new Date();
-  renderCalendar();
-  renderDaySchedule(selectedDateKey);
-  renderTodayFocus(selectedDateKey);
-  const todayCell = document.querySelector('.cal-day.today');
-  if (todayCell) {
-    document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
-    todayCell.classList.add('selected');
-  }
-  showToast('已切换到今日课表');
-}
-function goToDueTimeline() {
-  const tab = document.getElementById('taskTab-timeline');
-  if (tab) switchTab(tab, 'timeline');
-  showToast('已切换到 Due 时间线');
-}
-function goToTodayFocus() {
-  const tab = document.getElementById('taskTab-today');
-  if (tab) switchTab(tab, 'today');
-  showToast('已切换到今日聚焦');
-}
-
-// 左侧日历下方：手动添加课程（时间、地点、课程名）
-function addManualCourse() {
-  const startInput = document.getElementById('addCourseStart');
-  const endInput = document.getElementById('addCourseEnd');
-  const nameInput = document.getElementById('addCourseName');
-  const locationInput = document.getElementById('addCourseLocation');
-  if (!startInput || !endInput || !nameInput) return;
-  const start = startInput.value;
-  const end = endInput.value;
-  const name = nameInput.value.trim();
-  const location = (locationInput && locationInput.value.trim()) || '';
-  if (!name) {
-    showToast('请输入课程名称');
-    return;
-  }
-  if (!start) {
-    showToast('请选择开始时间');
-    return;
-  }
-  const timeStr = end ? `${start} – ${end}` : start;
-  if (!dayTasks[selectedDateKey]) dayTasks[selectedDateKey] = [];
-  dayTasks[selectedDateKey].push({
-    time: timeStr,
-    name: name,
-    tag: location ? '📍 ' + location : '课程',
-    type: 'course'
-  });
-  startInput.value = '';
-  endInput.value = '';
-  nameInput.value = '';
-  if (locationInput) locationInput.value = '';
-  renderDaySchedule(selectedDateKey);
-  renderCalendar();
-  saveToStorage();
-  const labelEl = document.getElementById('dayScheduleLabel');
-  showToast('✓ 已添加课程到 ' + (selectedDateKey === getTodayKey() ? '今日' : (labelEl ? labelEl.textContent : '')));
 }
 
 function formatDeadlineDisplay(dateStr) {
@@ -3139,8 +3149,36 @@ function toggleJournal() {
   arrow.textContent = content.classList.contains('open') ? '▴' : '▾';
 }
 
-// === AI CHAT ===
+// === REAL CLAUDE AI CHAT ===
 let aiTyping = false;
+let aiConversationHistory = [];
+
+function buildSystemPrompt() {
+  const today = new Date();
+  const allTasks = [];
+  for (const dateKey in dayFocusTasks) {
+    const tasks = dayFocusTasks[dateKey] || [];
+    tasks.filter(t => !t.archived).forEach(t => {
+      const div = document.createElement('div');
+      div.innerHTML = t.html;
+      const title = div.querySelector('.focus-title')?.textContent || '';
+      if (title) allTasks.push(`- ${title} (${dateKey})`);
+    });
+  }
+  const dueTaskList = [];
+  for (const id in dueTasks) {
+    const t = dueTasks[id];
+    const total = t.steps?.length || 0;
+    const done = t.steps?.filter(s => s.completed).length || 0;
+    const progress = total > 0 ? Math.round((done/total)*100) : 0;
+    const deadline = new Date(t.deadline);
+    const diffDays = Math.ceil((deadline - today)/(1000*60*60*24));
+    dueTaskList.push(`- ${t.title} (${t.course}) 截止 ${t.deadline}，剩 ${diffDays} 天，进度 ${progress}%`);
+  }
+  const shopList = document.getElementById('shopList');
+  const pendingShop = shopList ? Array.from(shopList.querySelectorAll('.shop-item:not(.done)')).map(el=>el.textContent.trim()).join('，') : '';
+  return `你是 Flow AI，专为在校大学生设计的智能规划助手。用中文回复，语气友好专业。\n今天是 ${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日。\n\n用户待办任务：\n${allTasks.length>0?allTasks.join('\n'):'暂无'}\n\n长期任务(Due时间线)：\n${dueTaskList.length>0?dueTaskList.join('\n'):'暂无'}\n\n购物清单待购：${pendingShop||'暂无'}\n\n当你需要给出任务拆解计划时，在回复末尾附加：<!--TASK_PLAN:{"title":"计划名","tasks":[{"name":"步骤名","week":"时间"},...]}-->\n这个JSON最多8个步骤，其他内容正常中文回复。`;
+}
 
 function autoResize(el) {
   el.style.height = 'auto';
@@ -3154,25 +3192,49 @@ function aiInputKeydown(e) {
   }
 }
 
-function sendAiMessage() {
+async function sendAiMessage() {
   if (aiTyping) return;
   const input = document.getElementById('aiInput');
   const text = input.value.trim();
   if (!text) return;
-
   appendMsg(text, 'user');
   input.value = '';
   input.style.height = 'auto';
-
   aiTyping = true;
   const typingEl = showTyping();
-
-  setTimeout(() => {
+  aiConversationHistory.push({ role: 'user', content: text });
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSystemPrompt(),
+        messages: aiConversationHistory
+      })
+    });
+    const data = await response.json();
     typingEl.remove();
     aiTyping = false;
-    const response = getAiResponse(text);
-    appendMsg(response.text, 'ai', response.card);
-  }, 1200 + Math.random() * 800);
+    if (data.content && data.content[0]) {
+      const fullText = data.content[0].text || '';
+      const planMatch = fullText.match(/<!--TASK_PLAN:([\s\S]*?)-->/);
+      let planData = null;
+      let displayText = fullText.replace(/<!--TASK_PLAN:[\s\S]*?-->/g, '').trim();
+      if (planMatch) { try { planData = JSON.parse(planMatch[1]); } catch(e){} }
+      const formattedText = displayText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      appendMsg(formattedText, 'ai', planData);
+      aiConversationHistory.push({ role: 'assistant', content: fullText });
+      if (aiConversationHistory.length > 20) aiConversationHistory = aiConversationHistory.slice(-16);
+    } else {
+      appendMsg('抱歉，AI 暂时无法响应，请稍后重试。', 'ai');
+    }
+  } catch (err) {
+    typingEl.remove();
+    aiTyping = false;
+    appendMsg('⚠️ 连接失败，请检查网络或稍后重试。', 'ai');
+  }
 }
 
 function appendMsg(text, role, card = null) {
@@ -3181,18 +3243,12 @@ function appendMsg(text, role, card = null) {
   msgEl.className = `msg msg-${role}`;
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-
   let cardHtml = '';
-  if (card) {
-    cardHtml = `
-      <div class="ai-import-card">
-        <div class="ai-import-title">📋 ${card.title}</div>
-        ${card.tasks.map(t => `<div class="ai-task-row"><span>${t.name}</span><span class="ai-task-week">${t.week}</span></div>`).join('')}
-        <button class="import-btn" onclick="handleImport()">⚡ 一键导入日历</button>
-      </div>
-    `;
+  if (card && card.tasks) {
+    const importId = 'import_' + Date.now();
+    const cardJson = JSON.stringify(card).replace(/"/g, '&quot;');
+    cardHtml = `<div class="ai-import-card"><div class="ai-import-title">📋 ${card.title}</div>${card.tasks.map(t => `<div class="ai-task-row"><span>${t.name}</span><span class="ai-task-week">${t.week}</span></div>`).join('')}<button class="import-btn" id="${importId}" onclick="handleImportPlan(this, JSON.parse(this.dataset.plan));" data-plan="${cardJson}">⚡ 一键导入任务中心 & 日历</button></div>`;
   }
-
   msgEl.innerHTML = `<div class="msg-bubble">${text}${cardHtml}</div><div class="msg-time">${timeStr}</div>`;
   messages.appendChild(msgEl);
   messages.scrollTop = messages.scrollHeight;
@@ -3208,65 +3264,121 @@ function showTyping() {
   return el;
 }
 
-function getAiResponse(text) {
-  const lower = text.toLowerCase();
 
-  if (lower.includes('今天') || lower.includes('下午') || lower.includes('空闲') || lower.includes('2小时')) {
-    return {
-      text: '根据你今天的课表，下午 15:00-17:00 有空闲。我建议这样安排：',
-      card: {
-        title: '今下午时间安排',
-        tasks: [
-          { name: '🎯 ML 模型训练（重要！）', week: '15:00-16:30' },
-          { name: '📝 DB课后笔记整理', week: '16:30-17:00' },
-        ]
-      }
-    };
-  }
-
-  if (lower.includes('db') || lower.includes('数据库') || lower.includes('database')) {
-    return {
-      text: '好的，我来帮你拆解数据库 Group Project，并考虑到还有 5 周时间 👇',
-      card: {
-        title: 'DB Group Project 详细计划',
-        tasks: [
-          { name: 'ER图设计与讨论', week: 'Week 5 周末' },
-          { name: '数据库建表与约束', week: 'Week 6' },
-          { name: 'SQL查询功能实现', week: 'Week 7' },
-          { name: '前端界面开发', week: 'Week 7-8' },
-          { name: '测试 + 报告撰写', week: 'Week 8-9' },
-        ]
-      }
-    };
-  }
-
-  if (lower.includes('实习') || lower.includes('工作') || lower.includes('求职')) {
-    return { text: '关于找实习，我建议这几点：<br><br>1️⃣ <strong>现在（Week 5-6）</strong>：精修简历，重点突出项目经验<br>2️⃣ <strong>Week 6-7</strong>：密集投递，锁定 5-8 家目标公司<br>3️⃣ <strong>持续刷题</strong>：每天 1-2 道 LeetCode，专攻高频算法<br><br>需要我帮你把投递计划排入日历吗？' };
-  }
-
-  if (lower.includes('购物') || lower.includes('超市') || lower.includes('买')) {
-    return { text: '我看到你的购物清单还有 5 项待购买 🛒 明天下午 14:00-15:00 课间你有时间，附近有一个超市，要不要我把"去超市"安排进明天的日历？' };
-  }
-
-  return { text: '收到！告诉我更多细节，比如这个任务的截止日期和大概需要多久，我来帮你制定详细计划 📋' };
+function handleImportPlan(btn, card) {
+  if (!card || !card.tasks) return;
+  const dueTaskId = 'due' + Date.now();
+  const today = new Date();
+  const futureDate = new Date(today);
+  futureDate.setDate(futureDate.getDate() + 30);
+  const deadlineStr = futureDate.toISOString().split('T')[0];
+  const steps = card.tasks.map((t, i) => {
+    const stepDate = new Date(today);
+    stepDate.setDate(stepDate.getDate() + (i+1) * Math.max(2, Math.floor(28/card.tasks.length)));
+    return { id: 'step'+Date.now()+i, name: t.name, date: stepDate.toISOString().split('T')[0], time: '', completed: false };
+  });
+  dueTasks[dueTaskId] = { id: dueTaskId, title: card.title, course: '其他', deadline: deadlineStr, steps };
+  renderDueItem(dueTasks[dueTaskId]);
+  steps.forEach(step => {
+    if (!dayTasks[step.date]) dayTasks[step.date] = [];
+    dayTasks[step.date].push({ time: '待定', name: `${card.title} · ${step.name}`, tag: '✦ AI规划', type: 'task' });
+  });
+  saveToStorage();
+  renderCalendar();
+  btn.textContent = '✓ 已导入！切换到「Due时间线」查看';
+  btn.style.background = 'var(--green)';
+  btn.disabled = true;
+  showToast('✅ 已导入「' + card.title + '」到任务中心！');
 }
 
 function handleImport() {
   showToast('✅ 已成功导入到日历！');
-  const btns = document.querySelectorAll('.import-btn');
-  btns.forEach(btn => {
-    btn.textContent = '✓ 已导入日历';
-    btn.style.background = 'var(--green)';
-    btn.style.opacity = '0.8';
-    btn.disabled = true;
-  });
+  const btns = document.querySelectorAll('.import-btn:not([disabled])');
+  btns.forEach(btn => { btn.textContent = '✓ 已导入日历'; btn.style.background = 'var(--green)'; btn.disabled = true; });
 }
 
 function useChip(el) {
   const input = document.getElementById('aiInput');
   input.value = el.textContent;
   input.focus();
+  autoResize(input);
   sendAiMessage();
+}
+
+// === BATCH CLEAR SHOPPING (PRD 3.4) ===
+function clearPurchasedItems() {
+  const list = document.getElementById('shopList');
+  if (!list) return;
+  const doneItems = list.querySelectorAll('.shop-item.done');
+  if (doneItems.length === 0) { showToast('没有已购买的项目'); return; }
+  doneItems.forEach(el => el.remove());
+  showToast(`🗑️ 已清除 ${doneItems.length} 个已购项目`);
+  updateShopCount();
+  saveToStorage();
+}
+
+function updateShopCount() {
+  const list = document.getElementById('shopList');
+  if (!list) return;
+  const pending = list.querySelectorAll('.shop-item:not(.done)').length;
+  const label = document.querySelector('#tab-shop .section-label');
+  if (label) label.textContent = `🛒 购物清单 · 待购 ${pending} 项`;
+}
+
+// === DUE WARNING CHECK (PRD: Due截止前3天主动提醒) ===
+function checkDueWarnings() {
+  const today = new Date();
+  const warnings = [];
+  for (const id in dueTasks) {
+    const t = dueTasks[id];
+    const deadline = new Date(t.deadline);
+    const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+    const total = t.steps?.length || 0;
+    const done = t.steps?.filter(s => s.completed).length || 0;
+    const progress = total > 0 ? Math.round((done/total)*100) : 0;
+    if (diffDays >= 0 && diffDays <= 3 && progress < 80) {
+      warnings.push({ title: t.title, diffDays, progress });
+    }
+  }
+  if (warnings.length > 0) {
+    setTimeout(() => {
+      const aiMsgs = document.getElementById('aiMessages');
+      if (warnings.length > 0 && aiMsgs) {
+        const msg = warnings.map(w =>
+          `⚠️ <strong>${w.title}</strong> 还有 ${w.diffDays} 天截止，当前进度仅 ${w.progress}%，建议今天优先处理！`
+        ).join('<br><br>');
+        appendMsg('📣 主动提醒：<br><br>' + msg, 'ai');
+      }
+    }, 2500);
+  }
+}
+
+// === UPDATE TOPBAR BADGES ===
+function updateTopbar() {
+  const now = new Date();
+  const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
+  const dateEl = document.querySelector('.today-date');
+  if (dateEl) {
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+    dateEl.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+weekDays[now.getDay()]+' · Week '+weekNum;
+  }
+  let urgentDue = 0;
+  for (const id in dueTasks) {
+    const deadline = new Date(dueTasks[id].deadline);
+    const diff = Math.ceil((deadline - new Date()) / (1000*60*60*24));
+    if (diff >= 0 && diff <= 3) urgentDue++;
+  }
+  const dueBadge = document.querySelector('.badge-due');
+  if (dueBadge) dueBadge.textContent = urgentDue + '个Due临近';
+  const todayKey = getTodayKey();
+  const todaySched = dayTasks[todayKey] || [];
+  const classCount = todaySched.filter(t => t.type === 'course').length;
+  const classBadge = document.getElementById('badgeClass');
+  if (classBadge) classBadge.textContent = classCount + '节课';
+  const todayTasks = (dayFocusTasks[selectedDateKey] || []).filter(t => !t.archived);
+  const taskBadge = document.querySelector('.badge-task');
+  if (taskBadge) taskBadge.textContent = todayTasks.length + '个待办';
 }
 
 // === TOAST ===
