@@ -1434,7 +1434,7 @@ const dueDays = [21, 28];
 const eventDays = [3,5,10,12,17,19,24,26];
 
 // 简单的每天课程 / 任务示例数据（会被导入的日历事件补充）
-const dayTasks = {
+let dayTasks = {
   '2025-02-19': [
     { time: '09:00 – 10:30', name: 'COMP3511 操作系统', tag: '📍 LT-A', type: 'course' },
     { time: '10:30 – 12:00', name: 'OS Lab 2 收尾', tag: '✦ AI建议安排', type: 'task' },
@@ -1450,6 +1450,270 @@ const dayTasks = {
     { time: '整天', name: '复盘本月课程 · 整理笔记', tag: '📝 月度回顾', type: 'task' }
   ]
 };
+
+// === LOCALSTORAGE PERSISTENCE ===
+const STORAGE_KEY = 'flowPlannerData';
+
+function saveToStorage() {
+  try {
+    const data = {
+      dayTasks: dayTasks,
+      todayTasks: serializeTodayTasks(),
+      dueItems: serializeDueItems(),
+      jobItems: serializeJobItems(),
+      shopItems: serializeShopItems(),
+      journalEntries: serializeJournalEntries(),
+      version: '1.0'
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('保存数据失败:', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return false;
+    const data = JSON.parse(stored);
+    
+    if (data.dayTasks) dayTasks = data.dayTasks;
+    if (data.todayTasks) restoreTodayTasks(data.todayTasks);
+    if (data.dueItems) restoreDueItems(data.dueItems);
+    if (data.jobItems) restoreJobItems(data.jobItems);
+    if (data.shopItems) restoreShopItems(data.shopItems);
+    if (data.journalEntries) restoreJournalEntries(data.journalEntries);
+    
+    return true;
+  } catch (e) {
+    console.warn('加载数据失败:', e);
+    return false;
+  }
+}
+
+function serializeTodayTasks() {
+  const mainList = document.querySelector('#tab-today .focus-items');
+  const archiveList = document.getElementById('todayArchiveList');
+  const tasks = [];
+  const archived = [];
+  
+  if (mainList) {
+    mainList.querySelectorAll('.focus-item').forEach(item => {
+      const check = item.querySelector('.focus-check');
+      const title = item.querySelector('.focus-title')?.textContent || '';
+      const meta = item.querySelector('.focus-meta')?.textContent || '';
+      const time = item.querySelector('.focus-time')?.textContent || '';
+      const isChecked = check?.classList.contains('checked') || false;
+      tasks.push({ id: item.id, title, meta, time, checked: isChecked, html: item.innerHTML });
+    });
+  }
+  
+  if (archiveList) {
+    archiveList.querySelectorAll('.focus-item').forEach(item => {
+      const check = item.querySelector('.focus-check');
+      const title = item.querySelector('.focus-title')?.textContent || '';
+      const meta = item.querySelector('.focus-meta')?.textContent || '';
+      const time = item.querySelector('.focus-time')?.textContent || '';
+      archived.push({ id: item.id, title, meta, time, checked: true, html: item.innerHTML });
+    });
+  }
+  
+  return { tasks, archived };
+}
+
+function restoreTodayTasks(data) {
+  const mainList = document.querySelector('#tab-today .focus-items');
+  const archiveList = document.getElementById('todayArchiveList');
+  const archiveLabel = document.getElementById('todayArchiveLabel');
+  
+  if (!mainList) return;
+  
+  // 如果用户有保存数据，恢复用户数据；否则保留初始示例
+  if (data.tasks.length > 0 || data.archived.length > 0) {
+    // 检查是否有用户添加的任务（ID不是fi1-fi5）
+    const hasUserTasks = data.tasks.some(t => !['fi1','fi2','fi3','fi4','fi5'].includes(t.id)) || 
+                         data.archived.some(t => !['fi1','fi2','fi3','fi4','fi5'].includes(t.id));
+    
+    if (hasUserTasks) {
+      // 用户有添加新任务，完全替换
+      mainList.innerHTML = '';
+      data.tasks.forEach(task => {
+        const item = document.createElement('div');
+        item.className = 'focus-item' + (task.checked ? ' done' : '');
+        item.id = task.id;
+        item.innerHTML = task.html;
+        mainList.appendChild(item);
+      });
+    } else {
+      // 只恢复已归档的任务状态
+      data.tasks.forEach(task => {
+        const existing = document.getElementById(task.id);
+        if (existing && task.checked) {
+          const check = existing.querySelector('.focus-check');
+          if (check) {
+            check.classList.add('checked');
+            check.textContent = '✓';
+            existing.classList.add('done');
+            if (archiveList && archiveLabel) {
+              archiveList.appendChild(existing);
+              archiveLabel.style.display = 'block';
+            }
+          }
+        }
+      });
+    }
+    
+    if (data.archived.length > 0 && archiveList && archiveLabel) {
+      archiveList.innerHTML = '';
+      data.archived.forEach(task => {
+        const item = document.createElement('div');
+        item.className = 'focus-item done';
+        item.id = task.id;
+        item.innerHTML = task.html;
+        archiveList.appendChild(item);
+      });
+      archiveLabel.style.display = 'block';
+    }
+  }
+}
+
+function serializeDueItems() {
+  const list = document.getElementById('dueList');
+  if (!list) return [];
+  const items = [];
+  list.querySelectorAll('.due-item').forEach(item => {
+    const title = item.querySelector('.due-title')?.textContent || '';
+    const date = item.querySelector('.due-date')?.textContent || '';
+    const weeks = item.querySelector('.due-weeks')?.textContent || '';
+    const progressFill = item.querySelector('.progress-fill');
+    const progress = progressFill ? progressFill.style.width || '0%' : '0%';
+    const stepsId = item.querySelector('.steps-list')?.id || '';
+    const stepsOpen = item.querySelector('.steps-list')?.classList.contains('open') || false;
+    items.push({ title, date, weeks, progress, stepsId, stepsOpen, html: item.innerHTML });
+  });
+  return items;
+}
+
+function restoreDueItems(items) {
+  const list = document.getElementById('dueList');
+  if (!list || !items.length) return;
+  
+  // 只恢复用户添加的，保留初始的3个示例
+  const existingCount = list.querySelectorAll('.due-item').length;
+  if (existingCount <= 3 && items.length <= 3) return; // 如果都是初始数据，不覆盖
+  
+  // 如果用户有添加新数据，替换整个列表
+  if (items.length > 3) {
+    list.innerHTML = '';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'due-item';
+      el.innerHTML = item.html;
+      if (item.stepsOpen) {
+        const stepsEl = el.querySelector('.steps-list');
+        const stepsBtn = el.querySelector('.due-steps');
+        if (stepsEl) stepsEl.classList.add('open');
+        if (stepsBtn) stepsBtn.textContent = '收起 ▴';
+      }
+      list.appendChild(el);
+    });
+  }
+}
+
+function serializeJobItems() {
+  const list = document.querySelector('#tab-job .focus-items');
+  if (!list) return [];
+  const items = [];
+  list.querySelectorAll('.focus-item').forEach(item => {
+    const check = item.querySelector('.focus-check');
+    const title = item.querySelector('.focus-title')?.textContent || '';
+    const meta = item.querySelector('.focus-meta')?.textContent || '';
+    const time = item.querySelector('.focus-time')?.textContent || '';
+    const isChecked = check?.classList.contains('checked') || false;
+    items.push({ id: item.id, title, meta, time, checked: isChecked, html: item.innerHTML });
+  });
+  return items;
+}
+
+function restoreJobItems(items) {
+  const list = document.querySelector('#tab-job .focus-items');
+  if (!list || !items.length) return;
+  
+  // 保留初始的4个示例任务，只添加用户新增的
+  const existingIds = Array.from(list.querySelectorAll('.focus-item')).map(el => el.id);
+  items.forEach(item => {
+    if (!existingIds.includes(item.id)) {
+      const el = document.createElement('div');
+      el.className = 'focus-item';
+      el.id = item.id;
+      el.innerHTML = item.html;
+      list.appendChild(el);
+    }
+  });
+}
+
+function serializeShopItems() {
+  const list = document.getElementById('shopList');
+  if (!list) return [];
+  const items = [];
+  list.querySelectorAll('.shop-item').forEach(item => {
+    const check = item.querySelector('.shop-check');
+    const text = item.textContent.trim().replace('✓', '').trim();
+    const isChecked = check?.classList.contains('checked') || false;
+    items.push({ id: item.id, text, checked: isChecked });
+  });
+  return items;
+}
+
+function restoreShopItems(items) {
+  const list = document.getElementById('shopList');
+  if (!list || !items.length) return;
+  
+  // 保留初始的5个示例，只添加用户新增的
+  const existingIds = Array.from(list.querySelectorAll('.shop-item')).map(el => el.id);
+  items.forEach(item => {
+    if (!existingIds.includes(item.id)) {
+      const el = document.createElement('div');
+      el.className = 'shop-item' + (item.checked ? ' done' : '');
+      el.id = item.id;
+      el.innerHTML = `<div class="shop-check ${item.checked ? 'checked' : ''}" onclick="toggleShop(this,'${item.id}')">${item.checked ? '✓' : ''}</div>${item.text}`;
+      list.appendChild(el);
+    }
+  });
+}
+
+function serializeJournalEntries() {
+  const entries = document.getElementById('journalEntries');
+  if (!entries) return [];
+  const items = [];
+  entries.querySelectorAll('.journal-entry').forEach(entry => {
+    const date = entry.querySelector('.entry-date')?.textContent || '';
+    const mood = entry.querySelector('.entry-mood')?.textContent || '';
+    const text = entry.querySelector('.entry-text')?.textContent || '';
+    items.push({ date, mood, text, html: entry.innerHTML });
+  });
+  return items;
+}
+
+function restoreJournalEntries(items) {
+  const entries = document.getElementById('journalEntries');
+  if (!entries || !items.length) return;
+  
+  // 保留初始的3个示例，只添加用户新增的
+  const existingCount = entries.querySelectorAll('.journal-entry').length;
+  if (existingCount >= 3 && items.length <= 3) return;
+  
+  // 如果用户有新增，替换整个列表
+  if (items.length > 3) {
+    entries.innerHTML = '';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'journal-entry';
+      el.innerHTML = item.html;
+      entries.appendChild(el);
+    });
+  }
+}
 
 function makeDateKey(y, m, d) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -1551,6 +1815,7 @@ function importIcsEvents(icsText) {
       type: 'course'
     });
   });
+  saveToStorage(); // 保存日历导入数据
 }
 
 function parseIcsDate(str) {
@@ -1643,9 +1908,16 @@ function selectDay(el, d) {
   renderDaySchedule(dateKey);
 }
 
+// 页面加载时恢复数据
+const hasLoadedData = loadFromStorage();
+if (hasLoadedData) {
+  showToast('📦 已恢复保存的数据');
+}
+
 renderCalendar();
-// 默认显示今天的任务
-renderDaySchedule('2025-02-19');
+// 默认显示今天的任务（使用恢复后的数据）
+const todayKey = '2025-02-19';
+renderDaySchedule(todayKey);
 const todayCell = document.querySelector('.cal-day.today');
 if (todayCell) todayCell.classList.add('selected');
 
@@ -1695,6 +1967,7 @@ function toggleCheck(el, id) {
       }
     }
   }
+  saveToStorage(); // 保存任务状态变更
 }
 
 // === STEPS ===
@@ -1715,6 +1988,7 @@ function toggleShop(el, id) {
     el.textContent = '';
     item.classList.remove('done');
   }
+  saveToStorage(); // 保存购物清单状态
 }
 
 function shopAdd() {
@@ -1730,6 +2004,7 @@ function shopAdd() {
   list.appendChild(item);
   input.value = '';
   showToast('✓ 已加入购物清单');
+  saveToStorage(); // 保存购物清单
 }
 
 function shopAddKeydown(e) {
@@ -1758,6 +2033,7 @@ function quickAdd() {
   list.appendChild(item);
   input.value = '';
   showToast('✓ 已添加到今日聚焦');
+  saveToStorage(); // 保存今日任务
 }
 
 function quickAddKeydown(e) {
@@ -1797,6 +2073,7 @@ function addDueItem() {
   titleInput.value = '';
   metaInput.value = '';
   showToast('✓ 已添加到时间线');
+  saveToStorage(); // 保存Due任务
 }
 
 // === JOB ADD ===
@@ -1821,6 +2098,7 @@ function jobAdd() {
   list.appendChild(item);
   input.value = '';
   showToast('✓ 已添加到找工作');
+  saveToStorage(); // 保存找工作任务
 }
 
 function jobAddKeydown(e) {
@@ -1859,6 +2137,7 @@ function saveJournal() {
   entries.insertBefore(entry, entries.firstChild);
   document.getElementById('journalInput').value = '';
   showToast('📔 已保存到日记');
+  saveToStorage(); // 保存日记
 }
 
 // === JOURNAL TOGGLE ===
