@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow — 学生日常规划系统</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f14;
+    --surface: #16181f;
+    --surface2: #1e2029;
+    --surface3: #252733;
+    --border: #2a2d3a;
+    --text: #e8eaf0;
+    --text-muted: #6b7080;
+    --text-dim: #9298a8;
+    --accent: #7c6af7;
+    --accent-light: #a89cf8;
+    --accent-dim: rgba(124,106,247,0.15);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.12);
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+    --pink: #f472b6;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    gap: 16px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-light), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .today-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .today-date {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  .today-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .badge-class { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+  .badge-due { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .badge-task { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mood-quick {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .mood-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .mood-btn:hover { background: var(--surface3); transform: scale(1.1); }
+  .mood-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: grid;
+    grid-template-columns: 260px 1fr 320px;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  /* PANEL COMMON */
+  .panel {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .panel-action {
+    font-size: 11px;
+    color: var(--accent-light);
+    cursor: pointer;
+    padding: 3px 8px;
+    background: var(--accent-dim);
+    border-radius: 6px;
+    border: 1px solid rgba(124,106,247,0.2);
+    transition: all 0.15s;
+  }
+  .panel-action:hover { background: rgba(124,106,247,0.25); }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ===== LEFT: CALENDAR ===== */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .cal-nav-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .cal-nav-btn:hover { background: var(--surface3); color: var(--text); }
+
+  .cal-month {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .cal-dow {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 4px 0;
+    letter-spacing: 0.5px;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: all 0.15s;
+    position: relative;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cal-day:hover { background: var(--surface3); color: var(--text); }
+  .cal-day.today {
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+  }
+  .cal-day.has-event::after {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--green);
+    position: absolute;
+    bottom: 3px;
+  }
+  .cal-day.today::after { background: rgba(255,255,255,0.7); }
+  .cal-day.has-due::after { background: var(--red); }
+  .cal-day.other-month { opacity: 0.3; }
+  .cal-day.selected { background: var(--accent-dim); color: var(--accent-light); border: 1px solid rgba(124,106,247,0.3); }
+
+  .cal-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  .week-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sched-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .sched-item {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    border-left: 3px solid var(--blue);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sched-item:hover { background: var(--surface3); }
+  .sched-item.course { border-color: var(--blue); }
+  .sched-item.due { border-color: var(--red); }
+  .sched-item.task { border-color: var(--green); }
+  .sched-item.job { border-color: var(--orange); }
+
+  .sched-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+    font-weight: 500;
+  }
+
+  .sched-name {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .sched-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ===== MIDDLE: TASK CENTER ===== */
+  .task-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 12px 16px 0;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .task-tab {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+  .task-tab:hover { color: var(--text); }
+  .task-tab.active {
+    color: var(--accent-light);
+    border-bottom-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Today Focus */
+  .focus-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .focus-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .focus-item:hover { border-color: var(--border); background: var(--surface3); }
+  .focus-item.done { opacity: 0.45; }
+
+  .focus-check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .focus-check.checked {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  .focus-info { flex: 1; }
+  .focus-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .focus-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+
+  .tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-course { background: var(--blue-dim); color: var(--blue); }
+  .tag-job { background: var(--orange-dim); color: var(--orange); }
+  .tag-life { background: var(--green-dim); color: var(--green); }
+  .tag-urgent { background: var(--red-dim); color: var(--red); }
+
+  .focus-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* Due Timeline */
+  .due-item {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .due-item:hover { background: var(--surface3); }
+
+  .due-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .due-title { font-size: 13px; font-weight: 500; }
+  .due-date { font-size: 11px; color: var(--text-muted); }
+
+  .progress-bar {
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .fill-green { background: linear-gradient(90deg, var(--green), #22c55e); }
+  .fill-orange { background: linear-gradient(90deg, var(--orange), #ef4444); }
+  .fill-red { background: linear-gradient(90deg, var(--red), #dc2626); }
+
+  .due-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .due-weeks {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .due-steps {
+    font-size: 11px;
+    color: var(--accent-light);
+    cursor: pointer;
+  }
+
+  /* Steps expanded */
+  .steps-list {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .steps-list.open { display: block; }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .step-dot.done { background: var(--green); }
+  .step-week { font-size: 10px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+
+  /* Shopping list */
+  .shop-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .shop-check {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+  }
+  .shop-check:hover { border-color: var(--green); }
+  .shop-check.checked { background: var(--green); border-color: var(--green); color: white; }
+  .shop-item.done { opacity: 0.4; text-decoration: line-through; }
+
+  .add-item {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .add-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .add-input:focus { border-color: var(--accent); }
+  .add-input::placeholder { color: var(--text-muted); }
+
+  .add-btn {
+    background: var(--accent-dim);
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--accent-light);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .add-btn:hover { background: rgba(124,106,247,0.25); }
+
+  /* ===== RIGHT: AI ASSISTANT ===== */
+  .ai-panel {
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .ai-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ai-avatar {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  .ai-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .ai-status {
+    font-size: 11px;
+    color: var(--green);
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ai-messages::-webkit-scrollbar { width: 3px; }
+  .ai-messages::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .msg {
+    max-width: 85%;
+    animation: fadeUp 0.3s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-ai { align-self: flex-start; }
+  .msg-user { align-self: flex-end; }
+
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .msg-ai .msg-bubble {
+    background: var(--surface2);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-user .msg-bubble {
+    background: var(--accent);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+  .msg-user .msg-time { text-align: right; }
+
+  /* AI import action */
+  .ai-import-card {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  .ai-import-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ai-task-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .ai-task-row:last-of-type { border-bottom: none; }
+
+  .ai-task-week { color: var(--accent-light); font-weight: 500; }
+
+  .import-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .import-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .import-btn:active { transform: translateY(0); }
+
+  .ai-suggestions {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .suggestion-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .suggestion-chip:hover { border-color: var(--accent); color: var(--accent-light); background: var(--accent-dim); }
+
+  .ai-input-area {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .ai-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-input::placeholder { color: var(--text-muted); }
+
+  .ai-send {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #9b6af7);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 14px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .ai-send:hover { opacity: 0.9; transform: scale(1.05); }
+
+  /* ===== BOTTOM JOURNAL ===== */
+  .journal-bar {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .journal-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .journal-toggle:hover { background: var(--surface2); }
+
+  .journal-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .journal-toggle-right {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .journal-content {
+    display: none;
+    padding: 12px 24px 16px;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .journal-content.open { display: flex; }
+
+  .journal-entries {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    overflow-x: auto;
+  }
+  .journal-entries::-webkit-scrollbar { height: 3px; }
+  .journal-entries::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .journal-entry {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    min-width: 180px;
+    max-width: 200px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .journal-entry:hover { border-color: var(--accent); }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .entry-date { font-size: 10px; color: var(--text-muted); }
+  .entry-mood { font-size: 16px; }
+  .entry-text { font-size: 11.5px; color: var(--text-dim); line-height: 1.6; }
+
+  .journal-new {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 240px;
+  }
+
+  .journal-new-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    resize: none;
+    height: 70px;
+    transition: border-color 0.15s;
+    line-height: 1.5;
+  }
+  .journal-new-input:focus { border-color: var(--accent); }
+  .journal-new-input::placeholder { color: var(--text-muted); }
+
+  .journal-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .mood-select {
+    display: flex;
+    gap: 4px;
+  }
+
+  .journal-save {
+    margin-left: auto;
+    background: var(--accent-dim);
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--accent-light);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .journal-save:hover { background: rgba(124,106,247,0.25); }
+
+  /* Tab content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* typing indicator */
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .typing-dot {
+    width: 6px; height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* notification toast */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface3);
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 12px;
+    color: var(--green);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  /* loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    height: 12px;
+    margin: 4px 0;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">✦ Flow</div>
+  <div class="today-info">
+    <span class="today-date">2025年2月19日 周三 · Week 5</span>
+    <div class="today-badges">
+      <span class="badge badge-class">3节课</span>
+      <span class="badge badge-due">2个Due临近</span>
+      <span class="badge badge-task">5个待办</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="mood-quick">
+      <span>今日心情</span>
+      <span class="mood-btn" onclick="setMood(this, '😊')">😊</span>
+      <span class="mood-btn" onclick="setMood(this, '😐')">😐</span>
+      <span class="mood-btn" onclick="setMood(this, '😩')">😩</span>
+      <span class="mood-btn" onclick="setMood(this, '🔥')">🔥</span>
+    </div>
+    <div class="avatar">李</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: CALENDAR -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">日历</span>
+      <span class="panel-action" onclick="showToast('已切换到周视图')">周视图</span>
+    </div>
+    <div class="panel-body">
+      <input type="file" id="calImportInput" accept=".ics,text/calendar" style="display:none" onchange="handleCalendarFile(event)">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+        <span class="panel-action" onclick="document.getElementById('calImportInput').click()">导入 Apple Calendar</span>
+      </div>
+      <div class="cal-nav">
+        <div class="cal-nav-btn" onclick="prevMonth()">‹</div>
+        <span class="cal-month" id="calMonthLabel">2025年2月</span>
+        <div class="cal-nav-btn" onclick="nextMonth()">›</div>
+      </div>
+      <div class="cal-grid" id="calGrid">
+        <!-- JS generated -->
+      </div>
+
+      <div class="cal-divider"></div>
+
+      <div class="week-schedule">
+        <div class="sched-label" id="dayScheduleLabel">今天 · 2月19日</div>
+        <div id="dayScheduleList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE: TASK CENTER -->
+  <div class="panel">
+    <div class="task-tabs">
+      <div class="task-tab active" onclick="switchTab(this,'today')">今日聚焦</div>
+      <div class="task-tab" onclick="switchTab(this,'timeline')">Due时间线</div>
+      <div class="task-tab" onclick="switchTab(this,'job')">找工作</div>
+      <div class="task-tab" onclick="switchTab(this,'shop')">购物清单</div>
+    </div>
+    <div class="panel-body">
+
+      <!-- TODAY -->
+      <div class="tab-content active" id="tab-today">
+        <div class="section-label" style="margin-bottom:12px">AI为你生成的今日计划</div>
+        <div class="focus-items">
+          <div class="focus-item" id="fi1">
+            <div class="focus-check" onclick="toggleCheck(this,'fi1')"></div>
+            <div class="focus-info">
+              <div class="focus-title">完成 OS Lab 2 · 最后收尾</div>
+              <div class="focus-meta">
+                <span class="tag tag-course">COMP3511</span>
+                <span>预计 1.5h</span>
+              </div>
+            </div>
+            <div class="focus-time">截止 明天</div>
+          </div>
+          <div class="focus-item" id="fi2">
+            <div class="focus-check" onclick="toggleCheck(this,'fi2')"></div>
+            <div class="focus-info">
+              <div class="focus-title">ML Assignment 1 · 数据预处理</div>
+              <div class="focus-meta">
+                <span class="tag tag-course">COMP4421</span>
+                <span>预计 2h</span>
+              </div>
+            </div>
+            <div class="focus-time">Week 5末</div>
+          </div>
+          <div class="focus-item" id="fi3">
+            <div class="focus-check checked" onclick="toggleCheck(this,'fi3')">✓</div>
+            <div class="focus-info">
+              <div class="focus-title">修改简历并投递字节跳动</div>
+              <div class="focus-meta">
+                <span class="tag tag-job">求职</span>
+                <span>预计 1h</span>
+              </div>
+            </div>
+            <div class="focus-time">今日</div>
+          </div>
+          <div class="focus-item" id="fi4">
+            <div class="focus-check" onclick="toggleCheck(this,'fi4')"></div>
+            <div class="focus-info">
+              <div class="focus-title">消化理解 DB 今日课程内容</div>
+              <div class="focus-meta">
+                <span class="tag tag-course">COMP3632</span>
+                <span>预计 30min</span>
+              </div>
+            </div>
+            <div class="focus-time">今晚</div>
+          </div>
+          <div class="focus-item" id="fi5">
+            <div class="focus-check" onclick="toggleCheck(this,'fi5')"></div>
+            <div class="focus-info">
+              <div class="focus-title">去超市买东西（清单里有5项）</div>
+              <div class="focus-meta">
+                <span class="tag tag-life">生活</span>
+                <span>购物清单已准备</span>
+              </div>
+            </div>
+            <div class="focus-time">下午</div>
+          </div>
+        </div>
+
+        <div class="section-label">快速添加</div>
+        <div class="add-item">
+          <input class="add-input" id="quickAddInput" placeholder="添加一件今日待办..." onkeydown="quickAddKeydown(event)">
+          <button class="add-btn" onclick="quickAdd()">+ 添加</button>
+        </div>
+
+        <div class="section-label" id="todayArchiveLabel" style="margin-top:12px; display:none;">已归档任务</div>
+        <div class="focus-items" id="todayArchiveList"></div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="tab-content" id="tab-timeline">
+        <div class="section-label" style="margin-bottom:12px">长期任务进度追踪</div>
+
+        <div id="dueList">
+          <div class="due-item">
+            <div class="due-header">
+              <div>
+                <div class="due-title">ML Assignment 1</div>
+                <div class="due-date">📚 COMP4421 · 发布 Week 4 → 截止 Week 5</div>
+              </div>
+              <span class="tag tag-urgent">⚡ 紧急</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-orange" style="width:50%"></div></div>
+            <div class="due-footer">
+              <div class="due-weeks">剩 3 天 · 进度 50%</div>
+              <div class="due-steps" onclick="toggleSteps('steps1',this)">查看步骤 ▾</div>
+            </div>
+            <div class="steps-list" id="steps1">
+              <div class="step-item"><div class="step-dot done"></div>理解题意与数据集<div class="step-week">Week 4 ✓</div></div>
+              <div class="step-item"><div class="step-dot done"></div>数据预处理与EDA<div class="step-week">Week 4 ✓</div></div>
+              <div class="step-item"><div class="step-dot"></div>训练模型与调参<div class="step-week">Today</div></div>
+              <div class="step-item"><div class="step-dot"></div>撰写报告<div class="step-week">Week 5</div></div>
+            </div>
+          </div>
+
+          <div class="due-item">
+            <div class="due-header">
+              <div>
+                <div class="due-title">数据库 Group Project</div>
+                <div class="due-date">📚 COMP3632 · 发布 Week 4 → 截止 Week 9</div>
+              </div>
+              <span class="tag tag-course">进行中</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-green" style="width:15%"></div></div>
+            <div class="due-footer">
+              <div class="due-weeks">剩 5 周 · 进度 15%</div>
+              <div class="due-steps" onclick="toggleSteps('steps2',this)">查看步骤 ▾</div>
+            </div>
+            <div class="steps-list" id="steps2">
+              <div class="step-item"><div class="step-dot done"></div>确定项目主题与分工<div class="step-week">Week 4 ✓</div></div>
+              <div class="step-item"><div class="step-dot"></div>ER图设计<div class="step-week">Week 5-6</div></div>
+              <div class="step-item"><div class="step-dot"></div>数据库搭建与SQL<div class="step-week">Week 7</div></div>
+              <div class="step-item"><div class="step-dot"></div>前端界面开发<div class="step-week">Week 7-8</div></div>
+              <div class="step-item"><div class="step-dot"></div>测试与报告<div class="step-week">Week 8-9</div></div>
+            </div>
+          </div>
+
+          <div class="due-item">
+            <div class="due-header">
+              <div>
+                <div class="due-title">OS Final Report</div>
+                <div class="due-date">📚 COMP3511 · 截止 4月25日</div>
+              </div>
+              <span class="tag tag-life">充裕</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-green" style="width:5%"></div></div>
+            <div class="due-footer">
+              <div class="due-weeks">剩 9 周 · 已开始思考</div>
+              <div class="due-steps" onclick="toggleSteps('steps3',this)">查看步骤 ▾</div>
+            </div>
+            <div class="steps-list" id="steps3">
+              <div class="step-item"><div class="step-dot"></div>确定题目方向<div class="step-week">Week 6</div></div>
+              <div class="step-item"><div class="step-dot"></div>文献调研<div class="step-week">Week 7</div></div>
+              <div class="step-item"><div class="step-dot"></div>主体写作<div class="step-week">Week 10-11</div></div>
+              <div class="step-item"><div class="step-dot"></div>修订提交<div class="step-week">Week 12</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:16px">快速添加长期任务</div>
+        <div class="add-item">
+          <input class="add-input" id="dueTitleInput" placeholder="任务标题，例如：OS Final Project">
+          <input class="add-input" id="dueMetaInput" placeholder="课程/说明，例如：COMP3511 · 截止 4月25日">
+          <button class="add-btn" onclick="addDueItem()">+ 添加</button>
+        </div>
+      </div>
+
+      <!-- JOB -->
+      <div class="tab-content" id="tab-job">
+        <div class="section-label" style="margin-bottom:12px">求职进度追踪</div>
+        <div class="focus-items">
+          <div class="focus-item" id="jb1">
+            <div class="focus-check checked" onclick="toggleCheck(this,'jb1')">✓</div>
+            <div class="focus-info">
+              <div class="focus-title">字节跳动 · 更新简历</div>
+              <div class="focus-meta"><span class="tag tag-job">实习</span><span>后端工程师</span></div>
+            </div>
+            <div class="focus-time">今日完成</div>
+          </div>
+          <div class="focus-item" id="jb2">
+            <div class="focus-check" onclick="toggleCheck(this,'jb2')"></div>
+            <div class="focus-info">
+              <div class="focus-title">阿里云 · 投递岗位</div>
+              <div class="focus-meta"><span class="tag tag-job">实习</span><span>Java后端</span></div>
+            </div>
+            <div class="focus-time">本周内</div>
+          </div>
+          <div class="focus-item" id="jb3">
+            <div class="focus-check" onclick="toggleCheck(this,'jb3')"></div>
+            <div class="focus-info">
+              <div class="focus-title">准备 LeetCode 刷题计划</div>
+              <div class="focus-meta"><span class="tag tag-job">技术准备</span><span>每天1-2题</span></div>
+            </div>
+            <div class="focus-time">持续</div>
+          </div>
+          <div class="focus-item" id="jb4">
+            <div class="focus-check" onclick="toggleCheck(this,'jb4')"></div>
+            <div class="focus-info">
+              <div class="focus-title">整理 GitHub Portfolio</div>
+              <div class="focus-meta"><span class="tag tag-job">材料准备</span><span>展示项目</span></div>
+            </div>
+            <div class="focus-time">下周前</div>
+          </div>
+        </div>
+        <div class="section-label" style="margin-top:16px">求职灵感</div>
+        <div class="focus-item" style="border: 1px dashed var(--border); background: transparent; cursor:default;">
+          <div style="font-size:20px">💡</div>
+          <div class="focus-info">
+            <div class="focus-title" style="font-size:12px">可以做一个个人技术博客，增加面试竞争力</div>
+            <div class="focus-meta"><span style="font-size:10px; color: var(--text-muted)">2月17日记录</span></div>
+          </div>
+        </div>
+        <div class="add-item" style="margin-top:10px">
+          <input class="add-input" id="jobInput" placeholder="记录求职灵感或添加任务..." onkeydown="jobAddKeydown(event)">
+          <button class="add-btn" onclick="jobAdd()">+ 添加</button>
+        </div>
+      </div>
+
+      <!-- SHOP -->
+      <div class="tab-content" id="tab-shop">
+        <div class="section-label" style="margin-bottom:12px">🛒 购物清单 · 待购 5 项</div>
+        <div class="shop-list" id="shopList">
+          <div class="shop-item" id="sh1">
+            <div class="shop-check" onclick="toggleShop(this,'sh1')"></div>
+            牛奶 × 2
+          </div>
+          <div class="shop-item" id="sh2">
+            <div class="shop-check" onclick="toggleShop(this,'sh2')"></div>
+            鸡蛋 × 12
+          </div>
+          <div class="shop-item" id="sh3">
+            <div class="shop-check" onclick="toggleShop(this,'sh3')"></div>
+            西兰花
+          </div>
+          <div class="shop-item" id="sh4">
+            <div class="shop-check" onclick="toggleShop(this,'sh4')"></div>
+            洗发水
+          </div>
+          <div class="shop-item" id="sh5">
+            <div class="shop-check" onclick="toggleShop(this,'sh5')"></div>
+            咖啡豆 500g
+          </div>
+        </div>
+        <div class="add-item" style="margin-top:12px">
+          <input class="add-input" id="shopInput" placeholder="随时记录要买的东西..." onkeydown="shopAddKeydown(event)">
+          <button class="add-btn" onclick="shopAdd()">+ 添加</button>
+        </div>
+        <div style="margin-top:16px; padding: 12px; background: var(--surface2); border-radius: var(--radius); border: 1px solid var(--border);">
+          <div style="font-size:11px; color: var(--text-muted); margin-bottom:6px">💡 去超市时系统会在今日聚焦中提醒你查看此清单</div>
+          <div style="font-size:11px; color: var(--green);">✓ 已启用超市提醒</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: AI ASSISTANT -->
+  <div class="ai-panel panel">
+    <div class="ai-header">
+      <div class="ai-avatar">✦</div>
+      <div>
+        <div class="ai-name">Flow AI</div>
+      </div>
+      <div class="ai-status">在线</div>
+    </div>
+
+    <div class="ai-messages" id="aiMessages">
+      <div class="msg msg-ai">
+        <div class="msg-bubble">你好！我是 Flow AI 🎉 今天 Week 5，有几件事想提醒你：<br><br>
+        ⚡ <strong>ML Assignment 1</strong> 距截止还有 3 天，建议今天完成"训练模型"这步<br><br>
+        📅 数据库 Group Project 刚开始，可以趁现在进度宽松规划好后续步骤<br><br>
+        告诉我任何大任务，我来帮你拆解然后自动排入日历 ✨</div>
+        <div class="msg-time">09:15</div>
+      </div>
+
+      <div class="msg msg-user">
+        <div class="msg-bubble">我有个OS Final Report要在4月25日交，我需要做文献调研和写报告，大概要2-3周才能完成</div>
+        <div class="msg-time">09:32</div>
+      </div>
+
+      <div class="msg msg-ai">
+        <div class="msg-bubble">收到！我帮你把 OS Final Report 拆解成可执行的步骤，并安排到你的空闲时间段 👇</div>
+        <div class="msg-time">09:32</div>
+      </div>
+
+      <div class="msg msg-ai">
+        <div class="msg-bubble">
+          <div class="ai-import-card">
+            <div class="ai-import-title">📋 OS Final Report 拆解方案</div>
+            <div class="ai-task-row">
+              <span>确定题目与方向</span>
+              <span class="ai-task-week">Week 6 · 2h</span>
+            </div>
+            <div class="ai-task-row">
+              <span>文献调研（10篇）</span>
+              <span class="ai-task-week">Week 7 · 6h</span>
+            </div>
+            <div class="ai-task-row">
+              <span>整理笔记与大纲</span>
+              <span class="ai-task-week">Week 8 · 2h</span>
+            </div>
+            <div class="ai-task-row">
+              <span>正文写作（初稿）</span>
+              <span class="ai-task-week">Week 10-11 · 10h</span>
+            </div>
+            <div class="ai-task-row">
+              <span>修改润色提交</span>
+              <span class="ai-task-week">Week 12 · 3h</span>
+            </div>
+            <button class="import-btn" onclick="handleImport()">⚡ 一键导入日历</button>
+          </div>
+        </div>
+        <div class="msg-time">09:32</div>
+      </div>
+    </div>
+
+    <div class="ai-suggestions">
+      <div class="suggestion-chip" onclick="useChip(this)">帮我安排今天下午</div>
+      <div class="suggestion-chip" onclick="useChip(this)">拆解 DB Project</div>
+      <div class="suggestion-chip" onclick="useChip(this)">我有2小时空闲</div>
+      <div class="suggestion-chip" onclick="useChip(this)">找实习建议</div>
+    </div>
+
+    <div class="ai-input-area">
+      <textarea class="ai-input" id="aiInput" placeholder="告诉我任务，我来帮你规划..." rows="1" onkeydown="aiInputKeydown(event)" oninput="autoResize(this)"></textarea>
+      <button class="ai-send" onclick="sendAiMessage()">↑</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM JOURNAL -->
+<div class="journal-bar">
+  <div class="journal-toggle" onclick="toggleJournal()">
+    <div class="journal-toggle-left">
+      <span>📔</span>
+      <span>心情 & 灵感日记</span>
+      <span class="badge badge-task" style="font-size:10px;">今日已记 1 条</span>
+    </div>
+    <div class="journal-toggle-right">
+      <span>点击展开</span>
+      <span id="journalArrow">▾</span>
+    </div>
+  </div>
+  <div class="journal-content" id="journalContent">
+    <div class="journal-entries" id="journalEntries">
+      <div class="journal-entry">
+        <div class="entry-header">
+          <span class="entry-date">2月19日 09:15</span>
+          <span class="entry-mood">😊</span>
+        </div>
+        <div class="entry-text">早上喝了咖啡，感觉状态不错，今天应该能搞定ML的模型训练</div>
+      </div>
+      <div class="journal-entry">
+        <div class="entry-header">
+          <span class="entry-date">2月18日 晚上</span>
+          <span class="entry-mood">😩</span>
+        </div>
+        <div class="entry-text">OS实验报错一下午，有点沮丧，但最后找到bug了感觉好多了</div>
+      </div>
+      <div class="journal-entry">
+        <div class="entry-header">
+          <span class="entry-date">2月17日 下午</span>
+          <span class="entry-mood">💡</span>
+        </div>
+        <div class="entry-text">灵感：可以做个个人技术博客增加求职竞争力，用Next.js做</div>
+      </div>
+    </div>
+    <div class="journal-new">
+      <textarea class="journal-new-input" id="journalInput" placeholder="此刻的心情或灵感..."></textarea>
+      <div class="journal-actions">
+        <div class="mood-select">
+          <span class="mood-btn" onclick="selectJournalMood(this,'😊')">😊</span>
+          <span class="mood-btn" onclick="selectJournalMood(this,'😩')">😩</span>
+          <span class="mood-btn" onclick="selectJournalMood(this,'💡')">💡</span>
+          <span class="mood-btn" onclick="selectJournalMood(this,'🔥')">🔥</span>
+        </div>
+        <button class="journal-save" onclick="saveJournal()">保存记录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// === CALENDAR ===
+let currentDate = new Date(2025, 1, 1); // Feb 2025
+const today = 19;
+
+const dows = ['日','一','二','三','四','五','六'];
+const dueDays = [21, 28];
+const eventDays = [3,5,10,12,17,19,24,26];
+
+// 简单的每天课程 / 任务示例数据（会被导入的日历事件补充）
+const dayTasks = {
+  '2025-02-19': [
+    { time: '09:00 – 10:30', name: 'COMP3511 操作系统', tag: '📍 LT-A', type: 'course' },
+    { time: '10:30 – 12:00', name: 'OS Lab 2 收尾', tag: '✦ AI建议安排', type: 'task' },
+    { time: '13:00 – 14:30', name: 'COMP3632 数据库', tag: '📍 Room 2302', type: 'course' },
+    { time: '15:00 – 16:00', name: '修改简历 · 字节跳动', tag: '🎯 求职任务', type: 'job' },
+    { time: '16:00 – 17:30', name: 'COMP4421 机器学习', tag: '📍 LSK G013', type: 'course' },
+    { time: '⚠ 截止 Week 5 末', name: 'ML Assignment 1', tag: '已完成 2/4 步', type: 'due' }
+  ],
+  '2025-02-21': [
+    { time: '14:00 – 16:00', name: 'ML Assignment 1 · 模型训练', tag: '📍 学校图书馆', type: 'task' }
+  ],
+  '2025-02-28': [
+    { time: '整天', name: '复盘本月课程 · 整理笔记', tag: '📝 月度回顾', type: 'task' }
+  ]
+};
+
+function makeDateKey(y, m, d) {
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function formatDateKeyFromDate(date) {
+  return makeDateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
+}
+
+function renderDaySchedule(dateKey) {
+  const list = document.getElementById('dayScheduleList');
+  const label = document.getElementById('dayScheduleLabel');
+  if (!list || !label) return;
+
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
+
+  // 更新上方标签
+  if (y === 2025 && m === 2 && d === today) {
+    label.textContent = '今天 · 2月19日';
+  } else {
+    label.textContent = `${m}月${d}日 · ${weekNames[date.getDay()]}`;
+  }
+
+  list.innerHTML = '';
+  const tasks = (dayTasks[dateKey] || []).slice().sort((a, b) => {
+    return (a.time || '').localeCompare(b.time || '');
+  });
+
+  if (!tasks.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = '这一天还没有安排任务';
+    list.appendChild(empty);
+    return;
+  }
+
+  tasks.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'sched-item ' + (t.type || 'task');
+    item.innerHTML = `
+      <div class="sched-time">${t.time}</div>
+      <div class="sched-name">${t.name}</div>
+      <div class="sched-tag">${t.tag || ''}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// 处理 Apple Calendar 导出的 .ics 文件
+function handleCalendarFile(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    importIcsEvents(text);
+    renderCalendar();
+    showToast('✅ 已从日历导入事件（本页内有效）');
+  };
+  reader.readAsText(file);
+}
+
+function importIcsEvents(icsText) {
+  const lines = icsText.split(/\r?\n/);
+  let current = null;
+  const events = [];
+
+  lines.forEach(line => {
+    if (line.startsWith('BEGIN:VEVENT')) {
+      current = {};
+    } else if (line.startsWith('END:VEVENT')) {
+      if (current && current.start) events.push(current);
+      current = null;
+    } else if (!current) {
+      return;
+    } else if (line.startsWith('DTSTART')) {
+      const value = line.split(':').pop().trim();
+      current.start = parseIcsDate(value);
+    } else if (line.startsWith('DTEND')) {
+      const value = line.split(':').pop().trim();
+      current.end = parseIcsDate(value);
+    } else if (line.startsWith('SUMMARY')) {
+      current.summary = line.split(':').slice(1).join(':').trim();
+    } else if (line.startsWith('LOCATION')) {
+      current.location = line.split(':').slice(1).join(':').trim();
+    }
+  });
+
+  events.forEach(ev => {
+    const dateKey = formatDateKeyFromDate(ev.start);
+    if (!dayTasks[dateKey]) dayTasks[dateKey] = [];
+    const timeStr = formatTimeRange(ev.start, ev.end);
+    dayTasks[dateKey].push({
+      time: timeStr,
+      name: ev.summary || '日历事件',
+      tag: ev.location ? `📍 ${ev.location}` : '',
+      type: 'course'
+    });
+  });
+}
+
+function parseIcsDate(str) {
+  // 例如：20250219T090000 或 20250219
+  const m = str.match(/^(\d{4})(\d{2})(\d{2})(T(\d{2})(\d{2}))?/);
+  if (!m) return new Date();
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const hour = Number(m[5] || '0');
+  const minute = Number(m[6] || '0');
+  return new Date(year, month - 1, day, hour, minute);
+}
+
+function formatTimeRange(start, end) {
+  if (!(start instanceof Date)) return '';
+  const pad = (n) => String(n).padStart(2,'0');
+  if (end instanceof Date) {
+    return `${pad(start.getHours())}:${pad(start.getMinutes())} – ${pad(end.getHours())}:${pad(end.getMinutes())}`;
+  }
+  return `${pad(start.getHours())}:${pad(start.getMinutes())}`;
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  dows.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  document.getElementById('calMonthLabel').textContent = `${year}年${month+1}月`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const prevDays = new Date(year, month, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.textContent = prevDays - firstDay + 1 + i;
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    if (d === today && month === 1 && year === 2025) {
+      el.classList.add('today');
+    }
+    const dateKey = makeDateKey(year, month + 1, d);
+    const hasTasks = !!dayTasks[dateKey];
+    if (dueDays.includes(d)) el.classList.add('has-due');
+    else if (hasTasks || eventDays.includes(d)) el.classList.add('has-event');
+    el.textContent = d;
+    el.onclick = () => selectDay(el, d);
+    grid.appendChild(el);
+  }
+
+  const remaining = 42 - firstDay - daysInMonth;
+  for (let d = 1; d <= remaining; d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.textContent = d;
+    grid.appendChild(el);
+  }
+}
+
+function prevMonth() {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  renderCalendar();
+}
+
+function nextMonth() {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  renderCalendar();
+}
+
+function selectDay(el, d) {
+  document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+  const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  renderDaySchedule(dateKey);
+}
+
+renderCalendar();
+// 默认显示今天的任务
+renderDaySchedule('2025-02-19');
+const todayCell = document.querySelector('.cal-day.today');
+if (todayCell) todayCell.classList.add('selected');
+
+// === TABS ===
+function switchTab(el, tabId) {
+  document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// === CHECK ===
+function toggleCheck(el, id) {
+  el.classList.toggle('checked');
+  if (el.classList.contains('checked')) {
+    el.textContent = '✓';
+    const item = document.getElementById(id);
+    if (item) {
+      item.classList.add('done');
+      // 今日聚焦任务完成后归档
+      if (id.startsWith('fi')) {
+        const archiveList = document.getElementById('todayArchiveList');
+        const archiveLabel = document.getElementById('todayArchiveLabel');
+        if (archiveList && archiveLabel) {
+          archiveList.appendChild(item);
+          archiveLabel.style.display = 'block';
+        }
+      }
+    }
+    showToast('✓ 任务完成！已归档');
+  } else {
+    el.textContent = '';
+    const item = document.getElementById(id);
+    if (item) {
+      item.classList.remove('done');
+      // 从归档恢复到今日聚焦列表
+      if (id.startsWith('fi')) {
+        const archiveList = document.getElementById('todayArchiveList');
+        const archiveLabel = document.getElementById('todayArchiveLabel');
+        const mainList = document.querySelector('#tab-today .focus-items');
+        if (archiveList && archiveLabel && mainList) {
+          mainList.appendChild(item);
+          if (!archiveList.children.length) {
+            archiveLabel.style.display = 'none';
+          }
+        }
+      }
+    }
+  }
+}
+
+// === STEPS ===
+function toggleSteps(id, btn) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? '收起 ▴' : '查看步骤 ▾';
+}
+
+// === SHOP ===
+function toggleShop(el, id) {
+  el.classList.toggle('checked');
+  const item = document.getElementById(id);
+  if (el.classList.contains('checked')) {
+    el.textContent = '✓';
+    item.classList.add('done');
+  } else {
+    el.textContent = '';
+    item.classList.remove('done');
+  }
+}
+
+function shopAdd() {
+  const input = document.getElementById('shopInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.getElementById('shopList');
+  const id = 'sh' + Date.now();
+  const item = document.createElement('div');
+  item.className = 'shop-item';
+  item.id = id;
+  item.innerHTML = `<div class="shop-check" onclick="toggleShop(this,'${id}')"></div>${val}`;
+  list.appendChild(item);
+  input.value = '';
+  showToast('✓ 已加入购物清单');
+}
+
+function shopAddKeydown(e) {
+  if (e.key === 'Enter') shopAdd();
+}
+
+// === QUICK ADD ===
+function quickAdd() {
+  const input = document.getElementById('quickAddInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.querySelector('.focus-items');
+  const id = 'fi' + Date.now();
+  const item = document.createElement('div');
+  item.className = 'focus-item';
+  item.id = id;
+  item.innerHTML = `
+    <div class="focus-check" onclick="toggleCheck(this,'${id}')"></div>
+    <div class="focus-info">
+      <div class="focus-title">${val}</div>
+      <div class="focus-meta"><span class="tag tag-life">待办</span></div>
+    </div>
+    <div class="focus-time">今日</div>
+  `;
+  item.style.animation = 'fadeUp 0.3s ease';
+  list.appendChild(item);
+  input.value = '';
+  showToast('✓ 已添加到今日聚焦');
+}
+
+function quickAddKeydown(e) {
+  if (e.key === 'Enter') quickAdd();
+}
+
+// === DUE ADD ===
+function addDueItem() {
+  const titleInput = document.getElementById('dueTitleInput');
+  const metaInput = document.getElementById('dueMetaInput');
+  const title = titleInput.value.trim();
+  const meta = metaInput.value.trim();
+  if (!title) return;
+  const list = document.getElementById('dueList');
+  if (!list) return;
+  const stepsId = 'steps' + Date.now();
+  const item = document.createElement('div');
+  item.className = 'due-item';
+  item.innerHTML = `
+    <div class="due-header">
+      <div>
+        <div class="due-title">${title}</div>
+        <div class="due-date">${meta || '自定义长期任务'}</div>
+      </div>
+      <span class="tag tag-course">进行中</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill fill-green" style="width:0%"></div></div>
+    <div class="due-footer">
+      <div class="due-weeks">新建 · 进度 0%</div>
+      <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
+    </div>
+    <div class="steps-list" id="${stepsId}">
+      <div class="step-item"><div class="step-dot"></div>在这里写下你的分步骤计划<div class="step-week">自定义</div></div>
+    </div>
+  `;
+  list.appendChild(item);
+  titleInput.value = '';
+  metaInput.value = '';
+  showToast('✓ 已添加到时间线');
+}
+
+// === JOB ADD ===
+function jobAdd() {
+  const input = document.getElementById('jobInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.querySelector('#tab-job .focus-items');
+  if (!list) return;
+  const id = 'jb' + Date.now();
+  const item = document.createElement('div');
+  item.className = 'focus-item';
+  item.id = id;
+  item.innerHTML = `
+    <div class="focus-check" onclick="toggleCheck(this,'${id}')"></div>
+    <div class="focus-info">
+      <div class="focus-title">${val}</div>
+      <div class="focus-meta"><span class="tag tag-job">求职</span></div>
+    </div>
+    <div class="focus-time">自定义</div>
+  `;
+  list.appendChild(item);
+  input.value = '';
+  showToast('✓ 已添加到找工作');
+}
+
+function jobAddKeydown(e) {
+  if (e.key === 'Enter') jobAdd();
+}
+
+// === MOOD ===
+function setMood(el, emoji) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  showToast(`心情已记录 ${emoji}`);
+}
+
+let selectedJournalMood = '😊';
+function selectJournalMood(el, emoji) {
+  document.querySelectorAll('.mood-select .mood-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedJournalMood = emoji;
+}
+
+function saveJournal() {
+  const text = document.getElementById('journalInput').value.trim();
+  if (!text) return;
+  const entries = document.getElementById('journalEntries');
+  const entry = document.createElement('div');
+  entry.className = 'journal-entry';
+  const now = new Date();
+  entry.innerHTML = `
+    <div class="entry-header">
+      <span class="entry-date">${now.getMonth()+1}月${now.getDate()}日 刚刚</span>
+      <span class="entry-mood">${selectedJournalMood}</span>
+    </div>
+    <div class="entry-text">${text}</div>
+  `;
+  entry.style.animation = 'fadeUp 0.3s ease';
+  entries.insertBefore(entry, entries.firstChild);
+  document.getElementById('journalInput').value = '';
+  showToast('📔 已保存到日记');
+}
+
+// === JOURNAL TOGGLE ===
+function toggleJournal() {
+  const content = document.getElementById('journalContent');
+  const arrow = document.getElementById('journalArrow');
+  content.classList.toggle('open');
+  arrow.textContent = content.classList.contains('open') ? '▴' : '▾';
+}
+
+// === AI CHAT ===
+let aiTyping = false;
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function aiInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAiMessage();
+  }
+}
+
+function sendAiMessage() {
+  if (aiTyping) return;
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMsg(text, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+
+  aiTyping = true;
+  const typingEl = showTyping();
+
+  setTimeout(() => {
+    typingEl.remove();
+    aiTyping = false;
+    const response = getAiResponse(text);
+    appendMsg(response.text, 'ai', response.card);
+  }, 1200 + Math.random() * 800);
+}
+
+function appendMsg(text, role, card = null) {
+  const messages = document.getElementById('aiMessages');
+  const msgEl = document.createElement('div');
+  msgEl.className = `msg msg-${role}`;
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+  let cardHtml = '';
+  if (card) {
+    cardHtml = `
+      <div class="ai-import-card">
+        <div class="ai-import-title">📋 ${card.title}</div>
+        ${card.tasks.map(t => `<div class="ai-task-row"><span>${t.name}</span><span class="ai-task-week">${t.week}</span></div>`).join('')}
+        <button class="import-btn" onclick="handleImport()">⚡ 一键导入日历</button>
+      </div>
+    `;
+  }
+
+  msgEl.innerHTML = `<div class="msg-bubble">${text}${cardHtml}</div><div class="msg-time">${timeStr}</div>`;
+  messages.appendChild(msgEl);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function showTyping() {
+  const messages = document.getElementById('aiMessages');
+  const el = document.createElement('div');
+  el.className = 'msg msg-ai';
+  el.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  messages.appendChild(el);
+  messages.scrollTop = messages.scrollHeight;
+  return el;
+}
+
+function getAiResponse(text) {
+  const lower = text.toLowerCase();
+
+  if (lower.includes('今天') || lower.includes('下午') || lower.includes('空闲') || lower.includes('2小时')) {
+    return {
+      text: '根据你今天的课表，下午 15:00-17:00 有空闲。我建议这样安排：',
+      card: {
+        title: '今下午时间安排',
+        tasks: [
+          { name: '🎯 ML 模型训练（重要！）', week: '15:00-16:30' },
+          { name: '📝 DB课后笔记整理', week: '16:30-17:00' },
+        ]
+      }
+    };
+  }
+
+  if (lower.includes('db') || lower.includes('数据库') || lower.includes('database')) {
+    return {
+      text: '好的，我来帮你拆解数据库 Group Project，并考虑到还有 5 周时间 👇',
+      card: {
+        title: 'DB Group Project 详细计划',
+        tasks: [
+          { name: 'ER图设计与讨论', week: 'Week 5 周末' },
+          { name: '数据库建表与约束', week: 'Week 6' },
+          { name: 'SQL查询功能实现', week: 'Week 7' },
+          { name: '前端界面开发', week: 'Week 7-8' },
+          { name: '测试 + 报告撰写', week: 'Week 8-9' },
+        ]
+      }
+    };
+  }
+
+  if (lower.includes('实习') || lower.includes('工作') || lower.includes('求职')) {
+    return { text: '关于找实习，我建议这几点：<br><br>1️⃣ <strong>现在（Week 5-6）</strong>：精修简历，重点突出项目经验<br>2️⃣ <strong>Week 6-7</strong>：密集投递，锁定 5-8 家目标公司<br>3️⃣ <strong>持续刷题</strong>：每天 1-2 道 LeetCode，专攻高频算法<br><br>需要我帮你把投递计划排入日历吗？' };
+  }
+
+  if (lower.includes('购物') || lower.includes('超市') || lower.includes('买')) {
+    return { text: '我看到你的购物清单还有 5 项待购买 🛒 明天下午 14:00-15:00 课间你有时间，附近有一个超市，要不要我把"去超市"安排进明天的日历？' };
+  }
+
+  return { text: '收到！告诉我更多细节，比如这个任务的截止日期和大概需要多久，我来帮你制定详细计划 📋' };
+}
+
+function handleImport() {
+  showToast('✅ 已成功导入到日历！');
+  const btns = document.querySelectorAll('.import-btn');
+  btns.forEach(btn => {
+    btn.textContent = '✓ 已导入日历';
+    btn.style.background = 'var(--green)';
+    btn.style.opacity = '0.8';
+    btn.disabled = true;
+  });
+}
+
+function useChip(el) {
+  const input = document.getElementById('aiInput');
+  input.value = el.textContent;
+  input.focus();
+  sendAiMessage();
+}
+
+// === TOAST ===
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// === INIT ANIMATION ===
+document.querySelectorAll('.focus-item, .due-item, .sched-item').forEach((el, i) => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(12px)';
+  el.style.transition = 'all 0.4s ease';
+  setTimeout(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  }, 100 + i * 60);
+});
+</script>
+</body>
+</html>
