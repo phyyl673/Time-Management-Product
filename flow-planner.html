@@ -89,7 +89,10 @@
     border-radius: 20px;
     font-weight: 500;
     letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
+  .badge:hover { opacity: 0.9; }
   .badge-class { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
   .badge-due { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
   .badge-task { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
@@ -319,6 +322,35 @@
     color: var(--text-muted);
     margin-top: 2px;
   }
+
+  .add-course-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .add-course-form .add-input,
+  .add-course-form input[type="time"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    width: 100%;
+  }
+  .add-course-form .add-input:focus,
+  .add-course-form input[type="time"]:focus { border-color: var(--accent); }
+  .add-course-form .row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .add-course-form .row .add-input,
+  .add-course-form .row input[type="time"] { flex: 1; min-width: 0; }
+  .add-course-form .add-btn { align-self: flex-end; }
 
   /* ===== MIDDLE: TASK CENTER ===== */
   .task-tabs {
@@ -1202,9 +1234,9 @@
   <div class="today-info">
     <span class="today-date">2025年2月19日 周三 · Week 5</span>
     <div class="today-badges">
-      <span class="badge badge-class">3节课</span>
-      <span class="badge badge-due">2个Due临近</span>
-      <span class="badge badge-task">5个待办</span>
+      <span class="badge badge-class" id="badgeClass" onclick="goToTodaySchedule()" title="点击查看今日课表">3节课</span>
+      <span class="badge badge-due" id="badgeDue" onclick="goToDueTimeline()" title="点击查看Due时间线">2个Due临近</span>
+      <span class="badge badge-task" id="badgeTask" onclick="goToTodayFocus()" title="点击查看今日聚焦">5个待办</span>
     </div>
   </div>
   <div class="topbar-right">
@@ -1248,14 +1280,25 @@
         <div class="sched-label" id="dayScheduleLabel">今天 · 2月19日</div>
         <div id="dayScheduleList"></div>
       </div>
+
+      <div class="section-label" style="margin-top:14px">添加课程</div>
+      <div class="add-course-form">
+        <div class="row">
+          <input type="time" id="addCourseStart" title="开始时间">
+          <input type="time" id="addCourseEnd" title="结束时间">
+        </div>
+        <input class="add-input" id="addCourseName" placeholder="课程名称">
+        <input class="add-input" id="addCourseLocation" placeholder="地点（选填）">
+        <button class="add-btn" onclick="addManualCourse()">+ 添加课程</button>
+      </div>
     </div>
   </div>
 
   <!-- MIDDLE: TASK CENTER -->
   <div class="panel">
     <div class="task-tabs">
-      <div class="task-tab active" onclick="switchTab(this,'today')">今日聚焦</div>
-      <div class="task-tab" onclick="switchTab(this,'timeline')">Due时间线</div>
+      <div class="task-tab active" id="taskTab-today" onclick="switchTab(this,'today')">今日聚焦</div>
+      <div class="task-tab" id="taskTab-timeline" onclick="switchTab(this,'timeline')">Due时间线</div>
       <div class="task-tab" onclick="switchTab(this,'job')">找工作</div>
       <div class="task-tab" onclick="switchTab(this,'shop')">购物清单</div>
     </div>
@@ -1350,13 +1393,7 @@
         <div class="add-item" style="flex-direction: column; gap: 8px;">
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input class="add-input" id="dueTitleInput" placeholder="任务标题" style="flex: 1; min-width: 200px;">
-            <select class="add-input" id="dueCourseInput" style="flex: 0 0 auto; width: 140px; cursor: pointer;">
-              <option value="">选择课程</option>
-              <option value="COMP3511">COMP3511</option>
-              <option value="COMP3632">COMP3632</option>
-              <option value="COMP4421">COMP4421</option>
-              <option value="其他">其他</option>
-            </select>
+            <input class="add-input" id="dueCourseInput" placeholder="课程名称（可自定义）" style="flex: 0 0 auto; width: 160px;">
             <input type="date" class="add-input" id="dueDeadlineInput" style="flex: 0 0 auto; width: 160px;" placeholder="截止日期">
             <button class="add-btn" onclick="addDueItem()">+ 添加</button>
           </div>
@@ -2040,9 +2077,9 @@ function renderDaySchedule(dateKey) {
   const date = new Date(y, m - 1, d);
   const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
 
-  // 更新上方标签
-  if (y === 2025 && m === 2 && d === today) {
-    label.textContent = '今天 · 2月19日';
+  // 更新上方标签（今日用 getTodayKey 判断）
+  if (dateKey === getTodayKey()) {
+    label.textContent = '今天 · ' + m + '月' + d + '日';
   } else {
     label.textContent = `${m}月${d}日 · ${weekNames[date.getDay()]}`;
   }
@@ -2173,10 +2210,11 @@ function renderCalendar() {
     grid.appendChild(el);
   }
 
+  const now = new Date();
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement('div');
     el.className = 'cal-day';
-    if (d === today && month === 1 && year === 2025) {
+    if (d === now.getDate() && month === now.getMonth() + 1 && year === now.getFullYear()) {
       el.classList.add('today');
     }
     const dateKey = makeDateKey(year, month + 1, d);
@@ -2911,7 +2949,7 @@ function addDueItem() {
   const deadlineInput = document.getElementById('dueDeadlineInput');
   
   const title = titleInput.value.trim();
-  const course = courseInput.value;
+  const course = courseInput.value.trim();
   const deadline = deadlineInput.value;
   
   if (!title) {
@@ -2920,7 +2958,7 @@ function addDueItem() {
   }
   
   if (!course) {
-    showToast('请选择课程');
+    showToast('请输入课程名称');
     return;
   }
   
@@ -2953,6 +2991,72 @@ function addDueItem() {
   
   showToast('✓ 已添加到时间线');
   saveToStorage();
+}
+
+// 顶部 badge 跳转：今日课表 / Due时间线 / 今日聚焦
+function getTodayKey() {
+  return formatDateKeyFromDate(new Date());
+}
+function goToTodaySchedule() {
+  selectedDateKey = getTodayKey();
+  currentDate = new Date();
+  renderCalendar();
+  renderDaySchedule(selectedDateKey);
+  renderTodayFocus(selectedDateKey);
+  const todayCell = document.querySelector('.cal-day.today');
+  if (todayCell) {
+    document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
+    todayCell.classList.add('selected');
+  }
+  showToast('已切换到今日课表');
+}
+function goToDueTimeline() {
+  const tab = document.getElementById('taskTab-timeline');
+  if (tab) switchTab(tab, 'timeline');
+  showToast('已切换到 Due 时间线');
+}
+function goToTodayFocus() {
+  const tab = document.getElementById('taskTab-today');
+  if (tab) switchTab(tab, 'today');
+  showToast('已切换到今日聚焦');
+}
+
+// 左侧日历下方：手动添加课程（时间、地点、课程名）
+function addManualCourse() {
+  const startInput = document.getElementById('addCourseStart');
+  const endInput = document.getElementById('addCourseEnd');
+  const nameInput = document.getElementById('addCourseName');
+  const locationInput = document.getElementById('addCourseLocation');
+  if (!startInput || !endInput || !nameInput) return;
+  const start = startInput.value;
+  const end = endInput.value;
+  const name = nameInput.value.trim();
+  const location = (locationInput && locationInput.value.trim()) || '';
+  if (!name) {
+    showToast('请输入课程名称');
+    return;
+  }
+  if (!start) {
+    showToast('请选择开始时间');
+    return;
+  }
+  const timeStr = end ? `${start} – ${end}` : start;
+  if (!dayTasks[selectedDateKey]) dayTasks[selectedDateKey] = [];
+  dayTasks[selectedDateKey].push({
+    time: timeStr,
+    name: name,
+    tag: location ? '📍 ' + location : '课程',
+    type: 'course'
+  });
+  startInput.value = '';
+  endInput.value = '';
+  nameInput.value = '';
+  if (locationInput) locationInput.value = '';
+  renderDaySchedule(selectedDateKey);
+  renderCalendar();
+  saveToStorage();
+  const labelEl = document.getElementById('dayScheduleLabel');
+  showToast('✓ 已添加课程到 ' + (selectedDateKey === getTodayKey() ? '今日' : (labelEl ? labelEl.textContent : '')));
 }
 
 function formatDeadlineDisplay(dateStr) {
