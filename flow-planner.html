@@ -497,8 +497,12 @@
     font-size: 12px;
     color: var(--text-dim);
     border-bottom: 1px solid var(--border);
+    transition: opacity 0.2s;
   }
   .step-item:last-child { border-bottom: none; }
+  .step-item .step-name.done {
+    opacity: 0.6;
+  }
   .step-check {
     width: 16px; height: 16px;
     border-radius: 50%;
@@ -1709,8 +1713,15 @@ function restoreDueItems(items) {
 }
 
 function initDefaultDueTasks() {
-  // 如果已经有数据了，不重复初始化
+  // 如果已经有数据了，不重复初始化（但需要确保渲染）
   if (dueTasks && Object.keys(dueTasks).length > 0) {
+    // 确保所有任务都已渲染
+    const list = document.getElementById('dueList');
+    if (list && list.children.length === 0) {
+      Object.keys(dueTasks).forEach(dueTaskId => {
+        renderDueItem(dueTasks[dueTaskId]);
+      });
+    }
     return;
   }
   
@@ -2305,10 +2316,18 @@ function getDueTaskId(dueItemEl) {
 
 function toggleStepCheck(stepId, dueTaskId) {
   const step = document.getElementById(stepId);
-  if (!step) return;
+  if (!step) {
+    console.warn('找不到子任务元素:', stepId);
+    return;
+  }
   
   const check = step.querySelector('.step-check');
   const name = step.querySelector('.step-name');
+  if (!check) {
+    console.warn('找不到checkbox元素');
+    return;
+  }
+  
   const isChecked = check.classList.contains('checked');
   
   check.classList.toggle('checked');
@@ -2319,13 +2338,22 @@ function toggleStepCheck(stepId, dueTaskId) {
   }
   
   // 更新数据结构
-  if (!dueTasks[dueTaskId]) return;
+  if (!dueTasks[dueTaskId]) {
+    console.warn('找不到Due任务:', dueTaskId);
+    return;
+  }
+  
   const task = dueTasks[dueTaskId];
   const stepData = task.steps.find(s => s.id === stepId);
   if (stepData) {
     stepData.completed = check.classList.contains('checked');
+    // 重新渲染以更新归档显示
+    renderDueSteps(dueTaskId);
     updateDueProgress(dueTaskId);
     saveToStorage();
+    showToast(stepData.completed ? '✓ 子任务已完成并归档' : '子任务已恢复为未完成');
+  } else {
+    console.warn('找不到子任务数据:', stepId);
   }
 }
 
@@ -2407,6 +2435,11 @@ function saveStep(dueTaskId, stepId) {
   const dateInput = document.getElementById('stepDateInput');
   const timeInput = document.getElementById('stepTimeInput');
   
+  if (!nameInput || !dateInput || !timeInput) {
+    showToast('表单元素未找到，请重试');
+    return;
+  }
+  
   const name = nameInput.value.trim();
   if (!name) {
     showToast('请输入子任务名称');
@@ -2420,16 +2453,21 @@ function saveStep(dueTaskId, stepId) {
   const date = dateInput.value || '';
   const time = timeInput.value || '';
   
-  if (stepId) {
+  if (stepId && stepId !== '') {
     // 编辑现有子任务
     const stepIndex = dueTasks[dueTaskId].steps.findIndex(s => s.id === stepId);
     if (stepIndex !== -1) {
+      // 保留原有的 completed 状态
+      const existingStep = dueTasks[dueTaskId].steps[stepIndex];
       dueTasks[dueTaskId].steps[stepIndex] = {
-        ...dueTasks[dueTaskId].steps[stepIndex],
+        ...existingStep,
         name,
         date,
         time
       };
+    } else {
+      showToast('找不到要编辑的子任务');
+      return;
     }
   } else {
     // 添加新子任务
@@ -2445,8 +2483,9 @@ function saveStep(dueTaskId, stepId) {
   
   renderDueSteps(dueTaskId);
   cancelStepForm(dueTaskId);
-  saveToStorage();
-  showToast(stepId ? '✓ 子任务已更新' : '✓ 子任务已添加');
+  updateDueProgress(dueTaskId); // 更新进度
+  saveToStorage(); // 保存到localStorage
+  showToast(stepId && stepId !== '' ? '✓ 子任务已更新' : '✓ 子任务已添加');
 }
 
 function deleteStep(dueTaskId, stepId) {
@@ -2475,39 +2514,41 @@ function renderDueSteps(dueTaskId) {
   stepsList.innerHTML = '';
   
   if (task.steps && task.steps.length > 0) {
-    task.steps.forEach(step => {
-      const stepEl = document.createElement('div');
-      stepEl.className = 'step-item';
-      stepEl.id = step.id;
+    // 分离已完成和未完成的子任务
+    const activeSteps = task.steps.filter(s => !s.completed);
+    const completedSteps = task.steps.filter(s => s.completed);
+    
+    // 渲染未完成的子任务
+    if (activeSteps.length > 0) {
+      activeSteps.forEach(step => {
+        const stepEl = createStepElement(step, dueTaskId);
+        stepsList.appendChild(stepEl);
+      });
+    }
+    
+    // 如果有已完成的任务，添加分隔线和归档区域
+    if (completedSteps.length > 0) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'height: 1px; background: var(--border); margin: 12px 0;';
+      stepsList.appendChild(divider);
       
-      const dateStr = step.date ? formatDateDisplay(step.date) : '未设置';
-      const timeStr = step.time || '';
-      const datetimeStr = step.date && step.time ? `${dateStr} ${timeStr}` : dateStr;
+      const archiveLabel = document.createElement('div');
+      archiveLabel.style.cssText = 'font-size: 10px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;';
+      archiveLabel.textContent = `已完成 (${completedSteps.length})`;
+      stepsList.appendChild(archiveLabel);
       
-      stepEl.innerHTML = `
-        <div class="step-check ${step.completed ? 'checked' : ''}" onclick="toggleStepCheck('${step.id}', '${dueTaskId}')">${step.completed ? '✓' : ''}</div>
-        <div class="step-content">
-          <div class="step-name ${step.completed ? 'done' : ''}">${step.name}</div>
-          <div class="step-meta">
-            <span>📅 ${datetimeStr}</span>
-            ${step.date && step.time ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
-          </div>
-        </div>
-        <div class="step-actions">
-          <span class="step-action-btn" onclick="showStepForm('${dueTaskId}', '${step.id}')">编辑</span>
-          <span class="step-action-btn" onclick="deleteStep('${dueTaskId}', '${step.id}')">删除</span>
-        </div>
-      `;
-      
-      stepsList.appendChild(stepEl);
-    });
+      completedSteps.forEach(step => {
+        const stepEl = createStepElement(step, dueTaskId);
+        stepsList.appendChild(stepEl);
+      });
+    }
   } else {
     stepsList.innerHTML = '<div style="padding: 8px; color: var(--text-muted); font-size: 11px; text-align: center;">还没有子任务，点击下方"添加子任务"开始</div>';
   }
   
   // 添加"添加子任务"按钮
   const addBtn = document.createElement('div');
-  addBtn.style.cssText = 'margin-top: 8px; text-align: center;';
+  addBtn.style.cssText = 'margin-top: 12px; text-align: center;';
   addBtn.innerHTML = `<span class="step-action-btn" onclick="showStepForm('${dueTaskId}')" style="display: inline-block;">+ 添加子任务</span>`;
   stepsList.appendChild(addBtn);
   
@@ -2518,6 +2559,33 @@ function renderDueSteps(dueTaskId) {
   if (formHtml) {
     stepsList.insertAdjacentHTML('beforeend', formHtml);
   }
+}
+
+function createStepElement(step, dueTaskId) {
+  const stepEl = document.createElement('div');
+  stepEl.className = 'step-item';
+  stepEl.id = step.id;
+  
+  const dateStr = step.date ? formatDateDisplay(step.date) : '未设置';
+  const timeStr = step.time || '';
+  const datetimeStr = step.date && step.time ? `${dateStr} ${timeStr}` : dateStr;
+  
+  stepEl.innerHTML = `
+    <div class="step-check ${step.completed ? 'checked' : ''}" onclick="toggleStepCheck('${step.id}', '${dueTaskId}')">${step.completed ? '✓' : ''}</div>
+    <div class="step-content">
+      <div class="step-name ${step.completed ? 'done' : ''}">${step.name}</div>
+      <div class="step-meta">
+        <span>📅 ${datetimeStr}</span>
+        ${step.date && step.time ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
+      </div>
+    </div>
+    <div class="step-actions">
+      <span class="step-action-btn" onclick="showStepForm('${dueTaskId}', '${step.id}')">编辑</span>
+      <span class="step-action-btn" onclick="deleteStep('${dueTaskId}', '${step.id}')">删除</span>
+    </div>
+  `;
+  
+  return stepEl;
 }
 
 function importStepToCalendar(dueTaskId, stepId) {
