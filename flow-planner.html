@@ -467,6 +467,33 @@
     transition: all 0.15s;
   }
   .due-item:hover { background: var(--surface3); }
+  .due-item-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .due-action-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--surface3);
+    color: var(--text-dim);
+  }
+  .due-action-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+  .due-action-btn.delete:hover { border-color: var(--red); color: var(--red); }
+  .due-item-archived {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    opacity: 0.85;
+    border-left: 3px solid var(--green);
+  }
+  .due-item-archived .due-archived-title { font-size: 12px; font-weight: 500; color: var(--text-dim); }
+  .due-item-archived .due-archived-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
   .due-header {
     display: flex;
@@ -1367,13 +1394,26 @@
 
         <div class="section-label">快速添加</div>
         <div class="add-item" style="flex-direction: column; gap: 8px;">
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input type="date" id="quickAddDate" class="add-input" style="flex: 0 0 auto; width: 140px;" value="">
-            <input class="add-input" id="quickAddInput" placeholder="添加待办任务..." style="flex: 1;" onkeydown="quickAddKeydown(event)">
+            <select class="add-input" id="quickAddCategory" style="width: 90px;" onchange="onQuickAddCategoryChange()">
+              <option value="待办">待办</option>
+              <option value="课程">课程</option>
+              <option value="求职">求职</option>
+              <option value="其它">其它</option>
+            </select>
+            <select class="add-input" id="quickAddCourse" style="width: 120px; display:none;" title="选择具体课程">
+              <option value="">选择课程</option>
+            </select>
+            <select class="add-input" id="quickAddOther" style="width: 120px; display:none;" title="选择或输入其它类别">
+              <option value="">选择/输入</option>
+            </select>
+            <input class="add-input" id="quickAddOtherInput" placeholder="新类别名" style="width: 90px; display:none;">
+            <input class="add-input" id="quickAddInput" placeholder="添加待办任务..." style="flex: 1; min-width: 120px;" onkeydown="quickAddKeydown(event)">
             <button class="add-btn" onclick="quickAdd()">+ 添加</button>
           </div>
           <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
-            💡 选择日期可添加未来任务，不选则添加到当前选中日期
+            💡 选择日期可添加未来任务；课程与 Due 时间线课程列表同步；求职与找工作板块同步显示
           </div>
         </div>
 
@@ -1384,21 +1424,40 @@
       <!-- TIMELINE -->
       <div class="tab-content" id="tab-timeline">
         <div class="section-label" style="margin-bottom:12px">长期任务进度追踪</div>
-
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">分类：<span class="tag tag-urgent" style="margin-right:4px;">逾期</span><span class="tag tag-urgent" style="margin-right:4px;">紧急</span><span class="tag tag-course" style="margin-right:4px;">进行中</span><span class="tag tag-life">充裕</span></div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+          <button type="button" class="due-action-btn" id="archiveAllDueBtn" onclick="archiveAllDueItems()" title="将所有未完成 Due 标为 100% 并移入已完成">✓ 全部标为100%并归档</button>
+        </div>
         <div id="dueList">
           <!-- Due任务将通过JS动态渲染 -->
+        </div>
+
+        <div class="section-label" style="margin-top:16px">已完成 due</div>
+        <div id="dueListArchived">
+          <!-- 已归档的 Due 将在此显示 -->
         </div>
 
         <div class="section-label" style="margin-top:16px">快速添加长期任务</div>
         <div class="add-item" style="flex-direction: column; gap: 8px;">
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input class="add-input" id="dueTitleInput" placeholder="任务标题" style="flex: 1; min-width: 200px;">
-            <input class="add-input" id="dueCourseInput" placeholder="课程名称（可自定义）" style="flex: 0 0 auto; width: 160px;">
+            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+              <select class="add-input" id="dueCourseSelect" style="width: 130px;" onchange="onDueCourseSelectChange()">
+                <option value="">选择课程</option>
+              </select>
+              <input class="add-input" id="dueCourseInput" placeholder="新课程名" style="width: 100px;">
+              <span class="due-action-btn" onclick="dueCourseAddNew()" title="将上方输入的新课程加入列表">[+]</span>
+              <span class="due-action-btn" onclick="toggleCourseManagePanel()" title="管理/删除课程">[-]</span>
+            </div>
             <input type="date" class="add-input" id="dueDeadlineInput" style="flex: 0 0 auto; width: 160px;" placeholder="截止日期">
             <button class="add-btn" onclick="addDueItem()">+ 添加</button>
           </div>
+          <div id="courseManagePanel" style="display:none; margin-top:8px; padding:10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border);">
+            <div style="font-size: 11px; font-weight: 600; margin-bottom: 8px;">管理课程 · 点击删除</div>
+            <div id="courseManageList"></div>
+          </div>
           <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
-            💡 添加任务后，点击"查看步骤"可以添加子任务并设置截止时间
+            💡 添加任务后，点击"查看步骤"可以添加子任务并设置截止时间；课程与今日聚焦「课程」类别同步
           </div>
         </div>
       </div>
@@ -1658,6 +1717,11 @@ let dayTasks = {
 // 每天的用户待办任务（按日期分组）
 let dayFocusTasks = {};
 
+// 课程列表（Due 与今日聚焦「课程」类别共用，可 [+] 添加、[-] 管理删除）
+let courseList = [];
+// 今日聚焦「其它」类别的自定义名称（可输入新名称并自动保存）
+let customCategories = [];
+
 // === LOCALSTORAGE PERSISTENCE ===
 const STORAGE_KEY = 'flowPlannerData';
 
@@ -1665,13 +1729,15 @@ function saveToStorage() {
   try {
     const data = {
       dayTasks: dayTasks,
-      dayFocusTasks: dayFocusTasks, // 新增：按日期存储的待办任务
+      dayFocusTasks: dayFocusTasks,
       todayTasks: serializeTodayTasks(),
-      dueItems: serializeDueItems(), // 现在存储 dueTasks 对象
+      dueItems: serializeDueItems(),
       jobItems: serializeJobItems(),
       shopItems: serializeShopItems(),
       journalEntries: serializeJournalEntries(),
-      version: '1.2'
+      courseList: courseList,
+      customCategories: customCategories,
+      version: '1.3'
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
@@ -1686,13 +1752,14 @@ function loadFromStorage() {
     const data = JSON.parse(stored);
     
     if (data.dayTasks) dayTasks = data.dayTasks;
-    if (data.dayFocusTasks) dayFocusTasks = data.dayFocusTasks; // 恢复按日期存储的待办任务
+    if (data.dayFocusTasks) dayFocusTasks = data.dayFocusTasks;
     if (data.todayTasks) restoreTodayTasks(data.todayTasks);
-    if (data.dueItems) restoreDueItems(data.dueItems); // 恢复Due任务（包括子任务）
+    if (data.dueItems) restoreDueItems(data.dueItems);
     if (data.jobItems) restoreJobItems(data.jobItems);
     if (data.shopItems) restoreShopItems(data.shopItems);
     if (data.journalEntries) restoreJournalEntries(data.journalEntries);
-    
+    if (Array.isArray(data.courseList)) courseList = data.courseList;
+    if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
     return true;
   } catch (e) {
     console.warn('加载数据失败:', e);
@@ -1712,10 +1779,8 @@ function renderTodayFocus(dateKey) {
   const [y, m, d] = dateKey.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
-  const todayKey = '2025-02-19';
   
-  // 更新标题
-  if (dateKey === todayKey) {
+  if (dateKey === getTodayKey()) {
     label.textContent = 'AI为你生成的今日计划';
   } else {
     label.textContent = `${m}月${d}日 · ${weekNames[date.getDay()]} 的待办任务`;
@@ -1752,11 +1817,27 @@ function renderTodayFocus(dateKey) {
     archiveLabel.style.display = 'block';
   }
   
-  // 如果没有任务，显示提示
-  if (tasks.length === 0) {
-    const empty = document.createElement('div');
+  // 求职：找工作板块的求职进度追踪自动同步到今日聚焦（显示为求职类别）
+  const jobList = document.querySelector('#tab-job .focus-items');
+  if (jobList && dateKey === getTodayKey()) {
+    jobList.querySelectorAll('.focus-item').forEach(function(jobEl) {
+      var jTitle = jobEl.querySelector('.focus-title');
+      var jMeta = jobEl.querySelector('.focus-meta');
+      var jTime = jobEl.querySelector('.focus-time');
+      if (!jTitle) return;
+      var jobId = 'job_' + (jobEl.id || '') + '_' + dateKey;
+      var jobHtml = '<div class="focus-check" onclick="toggleCheck(this,\'' + jobId + '\')"></div><div class="focus-info"><div class="focus-title">' + (jTitle.textContent || '').replace(/</g, '&lt;') + '</div><div class="focus-meta"><span class="tag tag-job">求职</span></div></div><div class="focus-time">' + (jTime ? jTime.textContent : '') + '</div>';
+      var jobItem = document.createElement('div');
+      jobItem.className = 'focus-item';
+      jobItem.id = jobId;
+      jobItem.innerHTML = jobHtml;
+      list.appendChild(jobItem);
+    });
+  }
+  if (list.children.length === 0) {
+    var empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = dateKey === todayKey ? '今天还没有待办任务，添加一个吧！' : '这一天还没有待办任务';
+    empty.textContent = dateKey === getTodayKey() ? '今天还没有待办任务，添加一个吧！' : '这一天还没有待办任务';
     empty.style.padding = '20px';
     list.appendChild(empty);
   }
@@ -1810,18 +1891,9 @@ function restoreDueItems(items) {
   }
   
   dueTasks = items;
-  
-  // 重新渲染所有Due任务
-  const list = document.getElementById('dueList');
-  if (!list) return;
-  
-  // 清空列表并重新渲染
-  list.innerHTML = '';
-  
-  Object.keys(dueTasks).forEach(dueTaskId => {
-    const task = dueTasks[dueTaskId];
-    renderDueItem(task);
-  });
+  Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
+  renderAllDueItems();
+  renderDueCourseSelect();
 }
 
 function initDefaultDueTasks() {
@@ -1879,18 +1951,16 @@ function initDefaultDueTasks() {
   };
   
   dueTasks = defaultTasks;
-  
-  // 渲染这些任务
-  const list = document.getElementById('dueList');
-  if (list) {
-    list.innerHTML = '';
-    Object.keys(defaultTasks).forEach(dueTaskId => {
-      renderDueItem(defaultTasks[dueTaskId]);
-    });
-  }
+  Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
+  renderAllDueItems();
+  renderDueCourseSelect();
 }
 
 function renderDueItem(task) {
+  if (task.archived) {
+    renderDueItemArchived(task);
+    return;
+  }
   const list = document.getElementById('dueList');
   if (!list) return;
   
@@ -1911,7 +1981,7 @@ function renderDueItem(task) {
   const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
   const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
   
-  // 确定标签颜色
+  // 确定标签颜色（Due 分类：逾期 / 紧急 / 进行中 / 充裕）
   let tagClass = 'tag-course';
   let tagText = '进行中';
   let progressClass = 'fill-green';
@@ -1959,6 +2029,10 @@ function renderDueItem(task) {
         <span class="progress-value">${progress}%</span>
       </div>
     </div>
+    <div class="due-item-actions">
+      <span class="due-action-btn" onclick="archiveDueItem('${dueTaskId}')">✓ 标为100%并归档</span>
+      <span class="due-action-btn delete" onclick="deleteDueItem('${dueTaskId}')">🗑 删除</span>
+    </div>
     <div class="steps-list" id="${stepsId}"></div>
   `;
   
@@ -1968,6 +2042,34 @@ function renderDueItem(task) {
   renderDueSteps(dueTaskId);
   // 更新进度显示
   updateDueProgress(dueTaskId);
+}
+
+function renderDueItemArchived(task) {
+  const list = document.getElementById('dueListArchived');
+  if (!list) return;
+  const dueTaskId = task.id;
+  const deadlineStr = formatDeadlineDisplay(task.deadline);
+  const item = document.createElement('div');
+  item.className = 'due-item-archived';
+  item.setAttribute('data-due-id', dueTaskId);
+  item.innerHTML = `
+    <div>
+      <div class="due-archived-title">${task.title}</div>
+      <div class="due-archived-meta">📚 ${task.course} · 截止 ${deadlineStr} · 100%</div>
+    </div>
+    <span class="due-action-btn delete" onclick="deleteDueItem('${dueTaskId}')">🗑 删除</span>
+  `;
+  list.appendChild(item);
+}
+
+function renderAllDueItems() {
+  const list = document.getElementById('dueList');
+  const listArchived = document.getElementById('dueListArchived');
+  if (list) list.innerHTML = '';
+  if (listArchived) listArchived.innerHTML = '';
+  Object.keys(dueTasks).forEach(dueTaskId => {
+    renderDueItem(dueTasks[dueTaskId]);
+  });
 }
 
 function serializeJobItems() {
@@ -2359,13 +2461,9 @@ if (!hasLoadedData) {
 if (!dueTasks || Object.keys(dueTasks).length === 0) {
   initDefaultDueTasks();
 } else {
-  // 如果已经有数据，确保渲染
-  const list = document.getElementById('dueList');
-  if (list && list.children.length === 0) {
-    Object.keys(dueTasks).forEach(dueTaskId => {
-      renderDueItem(dueTasks[dueTaskId]);
-    });
-  }
+  Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
+  renderAllDueItems();
+  renderDueCourseSelect();
 }
 
 renderCalendar();
@@ -2887,10 +2985,16 @@ function importStepToCalendar(dueTaskId, stepId) {
     tag: `📚 ${task.course || 'Due任务'}`,
     type: 'task'
   });
-  
+  // 同步到今日聚焦：该日显示为一条待办，类别自动为对应课程
+  var focusId = 'due_' + dueTaskId + '_' + stepId;
+  var courseName = task.course || 'Due任务';
+  var focusHtml = '<div class="focus-check" onclick="toggleCheck(this,\'' + focusId + '\')"></div><div class="focus-info"><div class="focus-title">' + task.title + ' · ' + step.name + '</div><div class="focus-meta"><span class="tag tag-course">' + courseName + '</span></div></div><div class="focus-time">' + formatDateDisplay(dateKey) + '</div>';
+  if (!dayFocusTasks[dateKey]) dayFocusTasks[dateKey] = [];
+  dayFocusTasks[dateKey].push({ id: focusId, html: focusHtml, archived: false, dateKey: dateKey });
   saveToStorage();
   renderCalendar();
-  showToast(`✓ 已导入到 ${formatDateDisplay(dateKey)} 的日历`);
+  renderTodayFocus(selectedDateKey);
+  showToast('✓ 已导入到 ' + formatDateDisplay(dateKey) + ' 的日历与今日聚焦');
 }
 
 function addTime(timeStr, hours) {
@@ -2941,60 +3045,76 @@ function shopAddKeydown(e) {
   if (e.key === 'Enter') shopAdd();
 }
 
-// === QUICK ADD ===
+// === QUICK ADD（类别：课程/求职/待办/其它）===
+function onQuickAddCategoryChange() {
+  var cat = document.getElementById('quickAddCategory');
+  var courseEl = document.getElementById('quickAddCourse');
+  var otherEl = document.getElementById('quickAddOther');
+  var otherInput = document.getElementById('quickAddOtherInput');
+  if (!cat) return;
+  courseEl.style.display = cat.value === '课程' ? 'inline-block' : 'none';
+  otherEl.style.display = cat.value === '其它' ? 'inline-block' : 'none';
+  otherInput.style.display = cat.value === '其它' ? 'inline-block' : 'none';
+  if (cat.value === '课程') renderQuickAddCourseOptions();
+  if (cat.value === '其它') renderQuickAddOtherOptions();
+}
+function renderQuickAddCourseOptions() {
+  var sel = document.getElementById('quickAddCourse');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">选择课程</option>';
+  courseList.forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+}
+function renderQuickAddOtherOptions() {
+  var sel = document.getElementById('quickAddOther');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">选择类别</option>';
+  customCategories.forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+}
 function quickAdd() {
-  const input = document.getElementById('quickAddInput');
-  const dateInput = document.getElementById('quickAddDate');
-  const val = input.value.trim();
+  var input = document.getElementById('quickAddInput');
+  var dateInput = document.getElementById('quickAddDate');
+  var categorySelect = document.getElementById('quickAddCategory');
+  var courseSelect = document.getElementById('quickAddCourse');
+  var otherSelect = document.getElementById('quickAddOther');
+  var otherInput = document.getElementById('quickAddOtherInput');
+  var val = input && input.value.trim();
   if (!val) return;
-  
-  // 确定要添加到的日期
-  let targetDateKey = selectedDateKey;
-  if (dateInput.value) {
-    // 用户选择了日期
-    const selectedDate = new Date(dateInput.value);
-    targetDateKey = formatDateKeyFromDate(selectedDate);
+  var category = (categorySelect && categorySelect.value) || '待办';
+  var tagClass = 'tag-life', tagText = '待办';
+  if (category === '课程') {
+    var course = (courseSelect && courseSelect.value) || '';
+    if (!course) { showToast('请选择具体课程'); return; }
+    tagClass = 'tag-course'; tagText = course;
+  } else if (category === '求职') { tagClass = 'tag-job'; tagText = '求职'; }
+  else if (category === '其它') {
+    var other = (otherSelect && otherSelect.value) || (otherInput && otherInput.value.trim());
+    if (!other) { showToast('请选择或输入其它类别名称'); return; }
+    if (otherInput && otherInput.value.trim() && customCategories.indexOf(otherInput.value.trim()) === -1) {
+      customCategories.push(otherInput.value.trim()); saveToStorage(); renderQuickAddOtherOptions();
+    }
+    tagText = other;
   }
-  
-  const id = 'fi' + Date.now();
-  const itemHtml = `
-    <div class="focus-check" onclick="toggleCheck(this,'${id}')"></div>
-    <div class="focus-info">
-      <div class="focus-title">${val}</div>
-      <div class="focus-meta"><span class="tag tag-life">待办</span></div>
-    </div>
-    <div class="focus-time">${targetDateKey === selectedDateKey ? '今日' : formatDateDisplay(targetDateKey)}</div>
-  `;
-  
-  // 保存到数据结构
+  var targetDateKey = selectedDateKey;
+  if (dateInput && dateInput.value) { var d = new Date(dateInput.value); targetDateKey = formatDateKeyFromDate(d); }
+  var id = 'fi' + Date.now();
+  var itemHtml = '<div class="focus-check" onclick="toggleCheck(this,\'' + id + '\')"></div><div class="focus-info"><div class="focus-title">' + val + '</div><div class="focus-meta"><span class="tag ' + tagClass + '">' + tagText + '</span></div></div><div class="focus-time">' + (targetDateKey === selectedDateKey ? '今日' : formatDateDisplay(targetDateKey)) + '</div>';
   if (!dayFocusTasks[targetDateKey]) dayFocusTasks[targetDateKey] = [];
-  dayFocusTasks[targetDateKey].push({
-    id: id,
-    html: itemHtml,
-    archived: false,
-    dateKey: targetDateKey
-  });
-  
-  // 如果目标日期是当前选中的日期，立即显示
+  dayFocusTasks[targetDateKey].push({ id: id, html: itemHtml, archived: false, dateKey: targetDateKey });
   if (targetDateKey === selectedDateKey) {
-    const list = document.getElementById('todayFocusItems');
+    var list = document.getElementById('todayFocusItems');
     if (list) {
-      const emptyState = list.querySelector('.empty-state');
+      var emptyState = list.querySelector('.empty-state');
       if (emptyState) emptyState.remove();
-      
-      const item = document.createElement('div');
-      item.className = 'focus-item';
-      item.id = id;
-      item.innerHTML = itemHtml;
-      item.style.animation = 'fadeUp 0.3s ease';
+      var item = document.createElement('div');
+      item.className = 'focus-item'; item.id = id; item.innerHTML = itemHtml;
       list.appendChild(item);
     }
   }
-  
-  input.value = '';
-  dateInput.value = ''; // 清空日期选择
-  showToast(`✓ 已添加到${targetDateKey === selectedDateKey ? '今日聚焦' : formatDateDisplay(targetDateKey)}`);
-  saveToStorage(); // 保存任务
+  if (input) input.value = '';
+  if (dateInput) dateInput.value = '';
+  if (otherInput) otherInput.value = '';
+  showToast('✓ 已添加到' + (targetDateKey === selectedDateKey ? '今日聚焦' : formatDateDisplay(targetDateKey)));
+  saveToStorage();
 }
 
 function formatDateDisplay(dateKey) {
@@ -3018,55 +3138,177 @@ function quickAddKeydown(e) {
   if (e.key === 'Enter') quickAdd();
 }
 
+// === DUE COURSE（与今日聚焦「课程」类别同步）===
+function ensureCourseInList(course) {
+  if (!course || courseList.includes(course)) return;
+  courseList.push(course);
+  saveToStorage();
+}
+
+function renderDueCourseSelect() {
+  const sel = document.getElementById('dueCourseSelect');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">选择课程</option>';
+  courseList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  if (courseList.includes(cur)) sel.value = cur;
+}
+
+function onDueCourseSelectChange() {
+  const input = document.getElementById('dueCourseInput');
+  if (input) input.value = '';
+}
+
+function dueCourseAddNew() {
+  const input = document.getElementById('dueCourseInput');
+  const name = input && input.value.trim();
+  if (!name) {
+    showToast('请先输入新课程名');
+    return;
+  }
+  if (courseList.includes(name)) {
+    showToast('该课程已存在');
+    return;
+  }
+  courseList.push(name);
+  input.value = '';
+  renderDueCourseSelect();
+  renderCourseManageList();
+  saveToStorage();
+  showToast('✓ 已添加课程「' + name + '」');
+}
+
+function toggleCourseManagePanel() {
+  const panel = document.getElementById('courseManagePanel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') renderCourseManageList();
+}
+
+function renderCourseManageList() {
+  const list = document.getElementById('courseManageList');
+  if (!list) return;
+  list.innerHTML = '';
+  courseList.forEach(c => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:12px;';
+    const span = document.createElement('span');
+    span.textContent = c;
+    const btn = document.createElement('span');
+    btn.className = 'due-action-btn delete';
+    btn.textContent = '删除';
+    btn.onclick = function() { deleteCourseFromList(c); };
+    row.appendChild(span);
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+  if (courseList.length === 0) list.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">暂无课程，可通过 [+] 添加</div>';
+}
+
+function deleteCourseFromList(courseName) {
+  courseList = courseList.filter(c => c !== courseName);
+  renderDueCourseSelect();
+  renderCourseManageList();
+  saveToStorage();
+  showToast('已删除课程「' + courseName + '」');
+}
+
 // === DUE ADD ===
 function addDueItem() {
   const titleInput = document.getElementById('dueTitleInput');
+  const courseSelect = document.getElementById('dueCourseSelect');
   const courseInput = document.getElementById('dueCourseInput');
   const deadlineInput = document.getElementById('dueDeadlineInput');
   
   const title = titleInput.value.trim();
-  const course = courseInput.value.trim();
-  const deadline = deadlineInput.value;
+  const course = (courseSelect && courseSelect.value) || (courseInput && courseInput.value.trim());
+  const deadline = deadlineInput && deadlineInput.value;
   
   if (!title) {
     showToast('请输入任务标题');
     return;
   }
-  
   if (!course) {
-    showToast('请输入课程名称');
+    showToast('请选择或输入课程名称');
     return;
   }
-  
   if (!deadline) {
     showToast('请选择截止日期');
     return;
   }
   
+  ensureCourseInList(course);
+  
   const list = document.getElementById('dueList');
   if (!list) return;
   
   const dueTaskId = 'due' + Date.now();
-  
-  // 保存到数据结构（不设置customProgress，使用自动模式）
   dueTasks[dueTaskId] = {
     id: dueTaskId,
     title: title,
     course: course,
     deadline: deadline,
     steps: [],
-    customProgress: undefined // 默认使用自动进度
+    customProgress: undefined,
+    archived: false
   };
   
-  // 使用renderDueItem渲染
   renderDueItem(dueTasks[dueTaskId]);
-  
   titleInput.value = '';
-  courseInput.value = '';  // 课程为自定义输入，清空即可
-  deadlineInput.value = '';
-  
+  if (courseSelect) courseSelect.value = '';
+  if (courseInput) courseInput.value = '';
+  if (deadlineInput) deadlineInput.value = '';
   showToast('✓ 已添加到时间线');
   saveToStorage();
+}
+
+function archiveDueItem(dueTaskId) {
+  const task = dueTasks[dueTaskId];
+  if (!task) return;
+  task.customProgress = 100;
+  task.archived = true;
+  if (task.steps && task.steps.length) {
+    task.steps.forEach(s => { s.completed = true; });
+  }
+  renderAllDueItems();
+  saveToStorage();
+  showToast('✓ 已标为 100% 并归档到「已完成 due」');
+}
+
+function archiveAllDueItems() {
+  let count = 0;
+  Object.keys(dueTasks).forEach(dueTaskId => {
+    const task = dueTasks[dueTaskId];
+    if (task && !task.archived) {
+      task.customProgress = 100;
+      task.archived = true;
+      if (task.steps && task.steps.length) {
+        task.steps.forEach(s => { s.completed = true; });
+      }
+      count++;
+    }
+  });
+  if (count === 0) {
+    showToast('没有需要归档的 Due 任务');
+    return;
+  }
+  renderAllDueItems();
+  saveToStorage();
+  showToast(`✓ 已将 ${count} 个 Due 标为 100% 并归档到「已完成 due」`);
+}
+
+function deleteDueItem(dueTaskId) {
+  if (!dueTasks[dueTaskId]) return;
+  if (!confirm('确定要删除该 Due 任务吗？删除后无法恢复。')) return;
+  delete dueTasks[dueTaskId];
+  renderAllDueItems();
+  saveToStorage();
+  showToast('✓ 已删除');
 }
 
 function formatDeadlineDisplay(dateStr) {
@@ -3363,9 +3605,12 @@ function updateTopbar() {
     const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
     dateEl.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+weekDays[now.getDay()]+' · Week '+weekNum;
   }
+  // 与 Due 时间线「紧急」分类一致：仅统计未归档且距截止 0～3 天的 Due
   let urgentDue = 0;
   for (const id in dueTasks) {
-    const deadline = new Date(dueTasks[id].deadline);
+    const t = dueTasks[id];
+    if (t.archived) continue;
+    const deadline = new Date(t.deadline);
     const diff = Math.ceil((deadline - new Date()) / (1000*60*60*24));
     if (diff >= 0 && diff <= 3) urgentDue++;
   }
