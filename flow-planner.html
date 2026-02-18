@@ -500,8 +500,78 @@
     transition: opacity 0.2s;
   }
   .step-item:last-child { border-bottom: none; }
-  .step-item .step-name.done {
+  .step-item   .step-name.done {
     opacity: 0.6;
+    text-decoration: line-through;
+  }
+  
+  .progress-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  
+  .progress-toggle {
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  
+  .progress-toggle:hover {
+    background: var(--surface3);
+    color: var(--accent-light);
+  }
+  
+  .custom-progress-input {
+    display: none;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .custom-progress-input.active {
+    display: flex;
+  }
+  
+  .progress-slider {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  
+  .progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .progress-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .progress-value {
+    font-size: 11px;
+    color: var(--accent-light);
+    min-width: 35px;
+    text-align: right;
   }
   .step-check {
     width: 16px; height: 16px;
@@ -1785,10 +1855,13 @@ function renderDueItem(task) {
   const dueTaskId = task.id;
   const stepsId = 'steps' + dueTaskId;
   
-  // 计算进度
-  const total = task.steps.length;
-  const completed = task.steps.filter(s => s.completed).length;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  // 计算进度（优先使用自定义进度）
+  let progress = task.customProgress !== undefined ? task.customProgress : null;
+  if (progress === null || progress === undefined) {
+    const total = task.steps ? task.steps.length : 0;
+    const completed = task.steps ? task.steps.filter(s => s.completed).length : 0;
+    progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  }
   
   // 计算剩余天数
   const deadlineDate = new Date(task.deadline);
@@ -1819,6 +1892,7 @@ function renderDueItem(task) {
   }
   
   const deadlineStr = formatDeadlineDisplay(task.deadline);
+  const progressMode = task.customProgress !== undefined ? '自定义' : '自动';
   
   const item = document.createElement('div');
   item.className = 'due-item';
@@ -1833,8 +1907,15 @@ function renderDueItem(task) {
     </div>
     <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${progress}%"></div></div>
     <div class="due-footer">
-      <div class="due-weeks">${weeksText} · 进度 ${progress}%</div>
+      <div class="due-weeks">${weeksText} · 进度 ${progress}% (${progressMode})</div>
       <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
+    </div>
+    <div class="progress-controls">
+      <span class="progress-toggle" onclick="toggleCustomProgress('${dueTaskId}')">${task.customProgress !== undefined ? '切换到自动进度' : '切换到自定义进度'}</span>
+      <div class="custom-progress-input ${task.customProgress !== undefined ? 'active' : ''}">
+        <input type="range" class="progress-slider" min="0" max="100" value="${progress}" oninput="updateCustomProgress('${dueTaskId}', this.value)">
+        <span class="progress-value">${progress}%</span>
+      </div>
     </div>
     <div class="steps-list" id="${stepsId}"></div>
   `;
@@ -1843,6 +1924,8 @@ function renderDueItem(task) {
   
   // 渲染子任务
   renderDueSteps(dueTaskId);
+  // 更新进度显示
+  updateDueProgress(dueTaskId);
 }
 
 function serializeJobItems() {
@@ -2361,15 +2444,23 @@ function updateDueProgress(dueTaskId) {
   const task = dueTasks[dueTaskId];
   if (!task) return;
   
-  const total = task.steps.length;
-  const completed = task.steps.filter(s => s.completed).length;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  // 如果使用自定义进度，使用自定义值；否则根据子任务计算
+  let progress = task.customProgress !== undefined ? task.customProgress : null;
+  
+  if (progress === null || progress === undefined) {
+    // 自动计算进度
+    const total = task.steps ? task.steps.length : 0;
+    const completed = task.steps ? task.steps.filter(s => s.completed).length : 0;
+    progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  }
   
   // 更新进度条
   const dueItem = document.querySelector(`[data-due-id="${dueTaskId}"]`);
   if (dueItem) {
     const progressFill = dueItem.querySelector('.progress-fill');
     const progressText = dueItem.querySelector('.due-weeks');
+    const progressSlider = dueItem.querySelector('.progress-slider');
+    const progressValue = dueItem.querySelector('.progress-value');
     
     if (progressFill) {
       progressFill.style.width = progress + '%';
@@ -2385,9 +2476,62 @@ function updateDueProgress(dueTaskId) {
       const today = new Date();
       const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
       const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
-      progressText.textContent = `${weeksText} · 进度 ${progress}%`;
+      const progressMode = task.customProgress !== undefined ? '自定义' : '自动';
+      progressText.textContent = `${weeksText} · 进度 ${progress}% (${progressMode})`;
+    }
+    
+    if (progressSlider) {
+      progressSlider.value = progress;
+    }
+    
+    if (progressValue) {
+      progressValue.textContent = progress + '%';
     }
   }
+}
+
+function toggleCustomProgress(dueTaskId) {
+  const task = dueTasks[dueTaskId];
+  if (!task) return;
+  
+  const dueItem = document.querySelector(`[data-due-id="${dueTaskId}"]`);
+  if (!dueItem) return;
+  
+  const customInput = dueItem.querySelector('.custom-progress-input');
+  const toggleBtn = dueItem.querySelector('.progress-toggle');
+  
+  if (!customInput || !toggleBtn) return;
+  
+  const isActive = customInput.classList.contains('active');
+  
+  if (isActive) {
+    // 切换到自动模式
+    customInput.classList.remove('active');
+    toggleBtn.textContent = '切换到自定义进度';
+    delete task.customProgress;
+  } else {
+    // 切换到自定义模式
+    customInput.classList.add('active');
+    toggleBtn.textContent = '切换到自动进度';
+    // 如果还没有自定义进度，使用当前自动计算的进度
+    if (task.customProgress === undefined) {
+      const total = task.steps ? task.steps.length : 0;
+      const completed = task.steps ? task.steps.filter(s => s.completed).length : 0;
+      task.customProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    }
+  }
+  
+  updateDueProgress(dueTaskId);
+  saveToStorage();
+}
+
+function updateCustomProgress(dueTaskId, value) {
+  const task = dueTasks[dueTaskId];
+  if (!task) return;
+  
+  task.customProgress = parseInt(value);
+  updateDueProgress(dueTaskId);
+  saveToStorage();
 }
 
 function showStepForm(dueTaskId, stepId = null) {
@@ -2431,11 +2575,24 @@ function cancelStepForm(dueTaskId) {
 }
 
 function saveStep(dueTaskId, stepId) {
-  const nameInput = document.getElementById('stepNameInput');
-  const dateInput = document.getElementById('stepDateInput');
-  const timeInput = document.getElementById('stepTimeInput');
+  // 从当前活动的表单中获取值（使用更精确的选择器）
+  const stepsList = document.querySelector(`[data-due-id="${dueTaskId}"] .steps-list`);
+  if (!stepsList) {
+    showToast('找不到任务列表');
+    return;
+  }
   
-  if (!nameInput || !dateInput || !timeInput) {
+  const form = stepsList.querySelector('.step-add-form.open');
+  if (!form) {
+    showToast('找不到表单，请重试');
+    return;
+  }
+  
+  const nameInput = form.querySelector('#stepNameInput');
+  const dateInput = form.querySelector('#stepDateInput');
+  const timeInput = form.querySelector('#stepTimeInput');
+  
+  if (!nameInput) {
     showToast('表单元素未找到，请重试');
     return;
   }
@@ -2450,8 +2607,8 @@ function saveStep(dueTaskId, stepId) {
     dueTasks[dueTaskId] = { steps: [] };
   }
   
-  const date = dateInput.value || '';
-  const time = timeInput.value || '';
+  const date = dateInput ? (dateInput.value || '') : '';
+  const time = timeInput ? (timeInput.value || '') : '';
   
   if (stepId && stepId !== '') {
     // 编辑现有子任务
@@ -2472,6 +2629,9 @@ function saveStep(dueTaskId, stepId) {
   } else {
     // 添加新子任务
     const newStepId = 'step' + Date.now();
+    if (!dueTasks[dueTaskId].steps) {
+      dueTasks[dueTaskId].steps = [];
+    }
     dueTasks[dueTaskId].steps.push({
       id: newStepId,
       name,
@@ -2481,8 +2641,8 @@ function saveStep(dueTaskId, stepId) {
     });
   }
   
-  renderDueSteps(dueTaskId);
   cancelStepForm(dueTaskId);
+  renderDueSteps(dueTaskId);
   updateDueProgress(dueTaskId); // 更新进度
   saveToStorage(); // 保存到localStorage
   showToast(stepId && stepId !== '' ? '✓ 子任务已更新' : '✓ 子任务已添加');
@@ -2570,10 +2730,13 @@ function createStepElement(step, dueTaskId) {
   const timeStr = step.time || '';
   const datetimeStr = step.date && step.time ? `${dateStr} ${timeStr}` : dateStr;
   
+  // 已完成的任务用横线划掉
+  const nameStyle = step.completed ? 'text-decoration: line-through; opacity: 0.6;' : '';
+  
   stepEl.innerHTML = `
     <div class="step-check ${step.completed ? 'checked' : ''}" onclick="toggleStepCheck('${step.id}', '${dueTaskId}')">${step.completed ? '✓' : ''}</div>
     <div class="step-content">
-      <div class="step-name ${step.completed ? 'done' : ''}">${step.name}</div>
+      <div class="step-name ${step.completed ? 'done' : ''}" style="${nameStyle}">${step.name}</div>
       <div class="step-meta">
         <span>📅 ${datetimeStr}</span>
         ${step.date && step.time ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
@@ -2770,67 +2933,19 @@ function addDueItem() {
   if (!list) return;
   
   const dueTaskId = 'due' + Date.now();
-  const stepsId = 'steps' + dueTaskId;
   
-  // 计算剩余天数
-  const deadlineDate = new Date(deadline);
-  const today = new Date();
-  const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-  const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
-  
-  // 确定标签颜色
-  let tagClass = 'tag-course';
-  let tagText = '进行中';
-  if (diffDays < 0) {
-    tagClass = 'tag-urgent';
-    tagText = '⚡ 逾期';
-  } else if (diffDays <= 3) {
-    tagClass = 'tag-urgent';
-    tagText = '⚡ 紧急';
-  } else if (diffDays <= 7) {
-    tagClass = 'tag-course';
-    tagText = '进行中';
-  } else {
-    tagClass = 'tag-life';
-    tagText = '充裕';
-  }
-  
-  const deadlineStr = formatDeadlineDisplay(deadline);
-  
-  const item = document.createElement('div');
-  item.className = 'due-item';
-  item.setAttribute('data-due-id', dueTaskId);
-  item.innerHTML = `
-    <div class="due-header">
-      <div>
-        <div class="due-title">${title}</div>
-        <div class="due-date">📚 ${course} · 截止 ${deadlineStr}</div>
-      </div>
-      <span class="tag ${tagClass}">${tagText}</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill fill-green" style="width:0%"></div></div>
-    <div class="due-footer">
-      <div class="due-weeks">${weeksText} · 进度 0%</div>
-      <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
-    </div>
-    <div class="steps-list" id="${stepsId}">
-      <div style="padding: 8px; color: var(--text-muted); font-size: 11px; text-align: center;">还没有子任务，点击下方"添加子任务"开始</div>
-      <div style="margin-top: 8px; text-align: center;">
-        <span class="step-action-btn" onclick="showStepForm('${dueTaskId}')" style="display: inline-block;">+ 添加子任务</span>
-      </div>
-    </div>
-  `;
-  
-  list.appendChild(item);
-  
-  // 保存到数据结构
+  // 保存到数据结构（不设置customProgress，使用自动模式）
   dueTasks[dueTaskId] = {
     id: dueTaskId,
     title: title,
     course: course,
     deadline: deadline,
-    steps: []
+    steps: [],
+    customProgress: undefined // 默认使用自动进度
   };
+  
+  // 使用renderDueItem渲染
+  renderDueItem(dueTasks[dueTaskId]);
   
   titleInput.value = '';
   courseInput.value = '';
