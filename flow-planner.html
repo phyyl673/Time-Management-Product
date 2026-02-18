@@ -558,6 +558,14 @@
   }
   .add-input:focus { border-color: var(--accent); }
   .add-input::placeholder { color: var(--text-muted); }
+  
+  input[type="date"] {
+    cursor: pointer;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+  }
 
   .add-btn {
     background: var(--accent-dim);
@@ -1058,8 +1066,8 @@
 
       <!-- TODAY -->
       <div class="tab-content active" id="tab-today">
-        <div class="section-label" style="margin-bottom:12px">AI为你生成的今日计划</div>
-        <div class="focus-items">
+        <div class="section-label" style="margin-bottom:12px" id="todayFocusLabel">AI为你生成的今日计划</div>
+        <div class="focus-items" id="todayFocusItems">
           <div class="focus-item" id="fi1">
             <div class="focus-check" onclick="toggleCheck(this,'fi1')"></div>
             <div class="focus-info">
@@ -1118,9 +1126,15 @@
         </div>
 
         <div class="section-label">快速添加</div>
-        <div class="add-item">
-          <input class="add-input" id="quickAddInput" placeholder="添加一件今日待办..." onkeydown="quickAddKeydown(event)">
-          <button class="add-btn" onclick="quickAdd()">+ 添加</button>
+        <div class="add-item" style="flex-direction: column; gap: 8px;">
+          <div style="display: flex; gap: 8px;">
+            <input type="date" id="quickAddDate" class="add-input" style="flex: 0 0 auto; width: 140px;" value="">
+            <input class="add-input" id="quickAddInput" placeholder="添加待办任务..." style="flex: 1;" onkeydown="quickAddKeydown(event)">
+            <button class="add-btn" onclick="quickAdd()">+ 添加</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
+            💡 选择日期可添加未来任务，不选则添加到当前选中日期
+          </div>
         </div>
 
         <div class="section-label" id="todayArchiveLabel" style="margin-top:12px; display:none;">已归档任务</div>
@@ -1428,12 +1442,13 @@
 // === CALENDAR ===
 let currentDate = new Date(2025, 1, 1); // Feb 2025
 const today = 19;
+let selectedDateKey = '2025-02-19'; // 当前选中的日期
 
 const dows = ['日','一','二','三','四','五','六'];
 const dueDays = [21, 28];
 const eventDays = [3,5,10,12,17,19,24,26];
 
-// 简单的每天课程 / 任务示例数据（会被导入的日历事件补充）
+// 每天的任务数据：dayTasks 存储日历事件，dayFocusTasks 存储用户添加的待办任务
 let dayTasks = {
   '2025-02-19': [
     { time: '09:00 – 10:30', name: 'COMP3511 操作系统', tag: '📍 LT-A', type: 'course' },
@@ -1451,6 +1466,9 @@ let dayTasks = {
   ]
 };
 
+// 每天的用户待办任务（按日期分组）
+let dayFocusTasks = {};
+
 // === LOCALSTORAGE PERSISTENCE ===
 const STORAGE_KEY = 'flowPlannerData';
 
@@ -1458,12 +1476,13 @@ function saveToStorage() {
   try {
     const data = {
       dayTasks: dayTasks,
+      dayFocusTasks: dayFocusTasks, // 新增：按日期存储的待办任务
       todayTasks: serializeTodayTasks(),
       dueItems: serializeDueItems(),
       jobItems: serializeJobItems(),
       shopItems: serializeShopItems(),
       journalEntries: serializeJournalEntries(),
-      version: '1.0'
+      version: '1.1'
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
@@ -1478,6 +1497,7 @@ function loadFromStorage() {
     const data = JSON.parse(stored);
     
     if (data.dayTasks) dayTasks = data.dayTasks;
+    if (data.dayFocusTasks) dayFocusTasks = data.dayFocusTasks; // 恢复按日期存储的待办任务
     if (data.todayTasks) restoreTodayTasks(data.todayTasks);
     if (data.dueItems) restoreDueItems(data.dueItems);
     if (data.jobItems) restoreJobItems(data.jobItems);
@@ -1491,89 +1511,100 @@ function loadFromStorage() {
   }
 }
 
-function serializeTodayTasks() {
-  const mainList = document.querySelector('#tab-today .focus-items');
-  const archiveList = document.getElementById('todayArchiveList');
-  const tasks = [];
-  const archived = [];
-  
-  if (mainList) {
-    mainList.querySelectorAll('.focus-item').forEach(item => {
-      const check = item.querySelector('.focus-check');
-      const title = item.querySelector('.focus-title')?.textContent || '';
-      const meta = item.querySelector('.focus-meta')?.textContent || '';
-      const time = item.querySelector('.focus-time')?.textContent || '';
-      const isChecked = check?.classList.contains('checked') || false;
-      tasks.push({ id: item.id, title, meta, time, checked: isChecked, html: item.innerHTML });
-    });
-  }
-  
-  if (archiveList) {
-    archiveList.querySelectorAll('.focus-item').forEach(item => {
-      const check = item.querySelector('.focus-check');
-      const title = item.querySelector('.focus-title')?.textContent || '';
-      const meta = item.querySelector('.focus-meta')?.textContent || '';
-      const time = item.querySelector('.focus-time')?.textContent || '';
-      archived.push({ id: item.id, title, meta, time, checked: true, html: item.innerHTML });
-    });
-  }
-  
-  return { tasks, archived };
-}
-
-function restoreTodayTasks(data) {
-  const mainList = document.querySelector('#tab-today .focus-items');
+// 渲染今日聚焦（根据选中的日期）
+function renderTodayFocus(dateKey) {
+  const label = document.getElementById('todayFocusLabel');
+  const list = document.getElementById('todayFocusItems');
   const archiveList = document.getElementById('todayArchiveList');
   const archiveLabel = document.getElementById('todayArchiveLabel');
   
-  if (!mainList) return;
+  if (!label || !list) return;
   
-  // 如果用户有保存数据，恢复用户数据；否则保留初始示例
-  if (data.tasks.length > 0 || data.archived.length > 0) {
-    // 检查是否有用户添加的任务（ID不是fi1-fi5）
-    const hasUserTasks = data.tasks.some(t => !['fi1','fi2','fi3','fi4','fi5'].includes(t.id)) || 
-                         data.archived.some(t => !['fi1','fi2','fi3','fi4','fi5'].includes(t.id));
-    
-    if (hasUserTasks) {
-      // 用户有添加新任务，完全替换
-      mainList.innerHTML = '';
-      data.tasks.forEach(task => {
-        const item = document.createElement('div');
-        item.className = 'focus-item' + (task.checked ? ' done' : '');
-        item.id = task.id;
-        item.innerHTML = task.html;
-        mainList.appendChild(item);
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  const todayKey = '2025-02-19';
+  
+  // 更新标题
+  if (dateKey === todayKey) {
+    label.textContent = 'AI为你生成的今日计划';
+  } else {
+    label.textContent = `${m}月${d}日 · ${weekNames[date.getDay()]} 的待办任务`;
+  }
+  
+  // 清空列表
+  list.innerHTML = '';
+  if (archiveList) archiveList.innerHTML = '';
+  if (archiveLabel) archiveLabel.style.display = 'none';
+  
+  // 获取该日期的任务
+  const tasks = dayFocusTasks[dateKey] || [];
+  const archived = tasks.filter(t => t.archived);
+  const active = tasks.filter(t => !t.archived);
+  
+  // 渲染活跃任务
+  active.forEach(task => {
+    const item = document.createElement('div');
+    item.className = 'focus-item';
+    item.id = task.id;
+    item.innerHTML = task.html;
+    list.appendChild(item);
+  });
+  
+  // 渲染已归档任务
+  if (archived.length > 0 && archiveList && archiveLabel) {
+    archived.forEach(task => {
+      const item = document.createElement('div');
+      item.className = 'focus-item done';
+      item.id = task.id;
+      item.innerHTML = task.html;
+      archiveList.appendChild(item);
+    });
+    archiveLabel.style.display = 'block';
+  }
+  
+  // 如果没有任务，显示提示
+  if (tasks.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = dateKey === todayKey ? '今天还没有待办任务，添加一个吧！' : '这一天还没有待办任务';
+    empty.style.padding = '20px';
+    list.appendChild(empty);
+  }
+}
+
+function serializeTodayTasks() {
+  // 现在使用 dayFocusTasks 来存储，这里保留兼容性
+  return { tasks: [], archived: [] };
+}
+
+function restoreTodayTasks(data) {
+  // 现在主要使用 dayFocusTasks，这里保留兼容性
+  // 如果旧数据存在，迁移到新格式
+  if (data.tasks && data.tasks.length > 0) {
+    data.tasks.forEach(task => {
+      // 尝试从任务ID中提取日期，如果没有则使用今天
+      const taskDate = task.dateKey || selectedDateKey;
+      if (!dayFocusTasks[taskDate]) dayFocusTasks[taskDate] = [];
+      dayFocusTasks[taskDate].push({
+        id: task.id,
+        html: task.html,
+        archived: task.checked || false,
+        dateKey: taskDate
       });
-    } else {
-      // 只恢复已归档的任务状态
-      data.tasks.forEach(task => {
-        const existing = document.getElementById(task.id);
-        if (existing && task.checked) {
-          const check = existing.querySelector('.focus-check');
-          if (check) {
-            check.classList.add('checked');
-            check.textContent = '✓';
-            existing.classList.add('done');
-            if (archiveList && archiveLabel) {
-              archiveList.appendChild(existing);
-              archiveLabel.style.display = 'block';
-            }
-          }
-        }
+    });
+  }
+  if (data.archived && data.archived.length > 0) {
+    data.archived.forEach(task => {
+      const taskDate = task.dateKey || selectedDateKey;
+      if (!dayFocusTasks[taskDate]) dayFocusTasks[taskDate] = [];
+      dayFocusTasks[taskDate].push({
+        id: task.id,
+        html: task.html,
+        archived: true,
+        dateKey: taskDate
       });
-    }
-    
-    if (data.archived.length > 0 && archiveList && archiveLabel) {
-      archiveList.innerHTML = '';
-      data.archived.forEach(task => {
-        const item = document.createElement('div');
-        item.className = 'focus-item done';
-        item.id = task.id;
-        item.innerHTML = task.html;
-        archiveList.appendChild(item);
-      });
-      archiveLabel.style.display = 'block';
-    }
+    });
   }
 }
 
@@ -1872,9 +1903,15 @@ function renderCalendar() {
       el.classList.add('today');
     }
     const dateKey = makeDateKey(year, month + 1, d);
-    const hasTasks = !!dayTasks[dateKey];
+    const hasTasks = !!dayTasks[dateKey] || !!(dayFocusTasks[dateKey] && dayFocusTasks[dateKey].length > 0);
     if (dueDays.includes(d)) el.classList.add('has-due');
     else if (hasTasks || eventDays.includes(d)) el.classList.add('has-event');
+    
+    // 如果这个日期是当前选中的日期，标记为选中
+    if (dateKey === selectedDateKey) {
+      el.classList.add('selected');
+    }
+    
     el.textContent = d;
     el.onclick = () => selectDay(el, d);
     grid.appendChild(el);
@@ -1892,11 +1929,25 @@ function renderCalendar() {
 function prevMonth() {
   currentDate.setMonth(currentDate.getMonth() - 1);
   renderCalendar();
+  // 如果选中的日期在新月份中，保持选中状态
+  const [y, m, d] = selectedDateKey.split('-').map(Number);
+  const selectedDate = new Date(y, m - 1, d);
+  if (selectedDate.getMonth() === currentDate.getMonth() && selectedDate.getFullYear() === currentDate.getFullYear()) {
+    renderDaySchedule(selectedDateKey);
+    renderTodayFocus(selectedDateKey);
+  }
 }
 
 function nextMonth() {
   currentDate.setMonth(currentDate.getMonth() + 1);
   renderCalendar();
+  // 如果选中的日期在新月份中，保持选中状态
+  const [y, m, d] = selectedDateKey.split('-').map(Number);
+  const selectedDate = new Date(y, m - 1, d);
+  if (selectedDate.getMonth() === currentDate.getMonth() && selectedDate.getFullYear() === currentDate.getFullYear()) {
+    renderDaySchedule(selectedDateKey);
+    renderTodayFocus(selectedDateKey);
+  }
 }
 
 function selectDay(el, d) {
@@ -1905,21 +1956,64 @@ function selectDay(el, d) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  selectedDateKey = dateKey;
   renderDaySchedule(dateKey);
+  renderTodayFocus(dateKey); // 更新今日聚焦显示选中日期的任务
+}
+
+// 初始化今日的示例任务到 dayFocusTasks（如果还没有数据）
+function initDefaultTasks() {
+  const todayKey = '2025-02-19';
+  if (!dayFocusTasks[todayKey] || dayFocusTasks[todayKey].length === 0) {
+    // 从DOM中读取初始的5个示例任务
+    const fi1 = document.getElementById('fi1');
+    const fi2 = document.getElementById('fi2');
+    const fi3 = document.getElementById('fi3');
+    const fi4 = document.getElementById('fi4');
+    const fi5 = document.getElementById('fi5');
+    
+    const defaultTasks = [];
+    if (fi1) defaultTasks.push({ id: 'fi1', html: fi1.innerHTML, archived: false, dateKey: todayKey });
+    if (fi2) defaultTasks.push({ id: 'fi2', html: fi2.innerHTML, archived: false, dateKey: todayKey });
+    if (fi3) defaultTasks.push({ id: 'fi3', html: fi3.innerHTML, archived: true, dateKey: todayKey }); // 这个是已完成的
+    if (fi4) defaultTasks.push({ id: 'fi4', html: fi4.innerHTML, archived: false, dateKey: todayKey });
+    if (fi5) defaultTasks.push({ id: 'fi5', html: fi5.innerHTML, archived: false, dateKey: todayKey });
+    
+    dayFocusTasks[todayKey] = defaultTasks;
+  }
 }
 
 // 页面加载时恢复数据
 const hasLoadedData = loadFromStorage();
-if (hasLoadedData) {
+if (!hasLoadedData) {
+  // 如果没有保存的数据，初始化默认任务
+  initDefaultTasks();
+} else {
   showToast('📦 已恢复保存的数据');
+  // 如果恢复的数据中没有今天的任务，初始化默认任务
+  const todayKey = '2025-02-19';
+  if (!dayFocusTasks[todayKey] || dayFocusTasks[todayKey].length === 0) {
+    initDefaultTasks();
+  }
 }
 
 renderCalendar();
 // 默认显示今天的任务（使用恢复后的数据）
 const todayKey = '2025-02-19';
+selectedDateKey = todayKey;
 renderDaySchedule(todayKey);
+renderTodayFocus(todayKey); // 渲染今日聚焦
 const todayCell = document.querySelector('.cal-day.today');
 if (todayCell) todayCell.classList.add('selected');
+
+// 初始化日期选择器的默认值为今天
+const dateInput = document.getElementById('quickAddDate');
+if (dateInput) {
+  const today = new Date(2025, 1, 19); // 2025-02-19
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  dateInput.value = todayStr;
+  dateInput.min = todayStr; // 不允许选择过去的日期
+}
 
 // === TABS ===
 function switchTab(el, tabId) {
@@ -1932,33 +2026,47 @@ function switchTab(el, tabId) {
 // === CHECK ===
 function toggleCheck(el, id) {
   el.classList.toggle('checked');
-  if (el.classList.contains('checked')) {
+  const isChecked = el.classList.contains('checked');
+  
+  if (isChecked) {
     el.textContent = '✓';
+  } else {
+    el.textContent = '';
+  }
+  
+  // 更新数据结构中的归档状态
+  if (id.startsWith('fi')) {
+    // 找到这个任务属于哪个日期
+    let found = false;
+    for (const dateKey in dayFocusTasks) {
+      const taskIndex = dayFocusTasks[dateKey].findIndex(t => t.id === id);
+      if (taskIndex !== -1) {
+        dayFocusTasks[dateKey][taskIndex].archived = isChecked;
+        found = true;
+        break;
+      }
+    }
+    
+    // 更新UI
     const item = document.getElementById(id);
     if (item) {
-      item.classList.add('done');
-      // 今日聚焦任务完成后归档
-      if (id.startsWith('fi')) {
+      if (isChecked) {
+        item.classList.add('done');
+        // 今日聚焦任务完成后归档
         const archiveList = document.getElementById('todayArchiveList');
         const archiveLabel = document.getElementById('todayArchiveLabel');
-        if (archiveList && archiveLabel) {
+        const mainList = document.getElementById('todayFocusItems');
+        if (archiveList && archiveLabel && mainList && item.parentElement === mainList) {
           archiveList.appendChild(item);
           archiveLabel.style.display = 'block';
         }
-      }
-    }
-    showToast('✓ 任务完成！已归档');
-  } else {
-    el.textContent = '';
-    const item = document.getElementById(id);
-    if (item) {
-      item.classList.remove('done');
-      // 从归档恢复到今日聚焦列表
-      if (id.startsWith('fi')) {
+      } else {
+        item.classList.remove('done');
+        // 从归档恢复到今日聚焦列表
         const archiveList = document.getElementById('todayArchiveList');
         const archiveLabel = document.getElementById('todayArchiveLabel');
-        const mainList = document.querySelector('#tab-today .focus-items');
-        if (archiveList && archiveLabel && mainList) {
+        const mainList = document.getElementById('todayFocusItems');
+        if (archiveList && archiveLabel && mainList && item.parentElement === archiveList) {
           mainList.appendChild(item);
           if (!archiveList.children.length) {
             archiveLabel.style.display = 'none';
@@ -1966,7 +2074,12 @@ function toggleCheck(el, id) {
         }
       }
     }
+    
+    if (isChecked) {
+      showToast('✓ 任务完成！已归档');
+    }
   }
+  
   saveToStorage(); // 保存任务状态变更
 }
 
@@ -2014,26 +2127,74 @@ function shopAddKeydown(e) {
 // === QUICK ADD ===
 function quickAdd() {
   const input = document.getElementById('quickAddInput');
+  const dateInput = document.getElementById('quickAddDate');
   const val = input.value.trim();
   if (!val) return;
-  const list = document.querySelector('.focus-items');
+  
+  // 确定要添加到的日期
+  let targetDateKey = selectedDateKey;
+  if (dateInput.value) {
+    // 用户选择了日期
+    const selectedDate = new Date(dateInput.value);
+    targetDateKey = formatDateKeyFromDate(selectedDate);
+  }
+  
   const id = 'fi' + Date.now();
-  const item = document.createElement('div');
-  item.className = 'focus-item';
-  item.id = id;
-  item.innerHTML = `
+  const itemHtml = `
     <div class="focus-check" onclick="toggleCheck(this,'${id}')"></div>
     <div class="focus-info">
       <div class="focus-title">${val}</div>
       <div class="focus-meta"><span class="tag tag-life">待办</span></div>
     </div>
-    <div class="focus-time">今日</div>
+    <div class="focus-time">${targetDateKey === selectedDateKey ? '今日' : formatDateDisplay(targetDateKey)}</div>
   `;
-  item.style.animation = 'fadeUp 0.3s ease';
-  list.appendChild(item);
+  
+  // 保存到数据结构
+  if (!dayFocusTasks[targetDateKey]) dayFocusTasks[targetDateKey] = [];
+  dayFocusTasks[targetDateKey].push({
+    id: id,
+    html: itemHtml,
+    archived: false,
+    dateKey: targetDateKey
+  });
+  
+  // 如果目标日期是当前选中的日期，立即显示
+  if (targetDateKey === selectedDateKey) {
+    const list = document.getElementById('todayFocusItems');
+    if (list) {
+      const emptyState = list.querySelector('.empty-state');
+      if (emptyState) emptyState.remove();
+      
+      const item = document.createElement('div');
+      item.className = 'focus-item';
+      item.id = id;
+      item.innerHTML = itemHtml;
+      item.style.animation = 'fadeUp 0.3s ease';
+      list.appendChild(item);
+    }
+  }
+  
   input.value = '';
-  showToast('✓ 已添加到今日聚焦');
-  saveToStorage(); // 保存今日任务
+  dateInput.value = ''; // 清空日期选择
+  showToast(`✓ 已添加到${targetDateKey === selectedDateKey ? '今日聚焦' : formatDateDisplay(targetDateKey)}`);
+  saveToStorage(); // 保存任务
+}
+
+function formatDateDisplay(dateKey) {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const today = new Date();
+  const todayKey = formatDateKeyFromDate(today);
+  
+  if (dateKey === todayKey) return '今日';
+  
+  const diffDays = Math.floor((date - today) / (1000 * 60 * 60 * 24));
+  if (diffDays === 1) return '明天';
+  if (diffDays === -1) return '昨天';
+  if (diffDays > 1 && diffDays <= 7) return `${diffDays}天后`;
+  if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)}天前`;
+  
+  return `${m}月${d}日`;
 }
 
 function quickAddKeydown(e) {
