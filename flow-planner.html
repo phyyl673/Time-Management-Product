@@ -256,16 +256,24 @@
     color: white;
     font-weight: 700;
   }
-  .cal-day.has-event::after {
-    content: '';
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--green);
+  .cal-day-dots {
     position: absolute;
     bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    align-items: center;
   }
-  .cal-day.today::after { background: rgba(255,255,255,0.7); }
-  .cal-day.has-due::after { background: var(--red); }
+  .cal-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cal-dot-green { background: var(--green); }
+  .cal-dot-red   { background: var(--red); }
+  .cal-day.today .cal-dot-green { background: rgba(255,255,255,0.8); }
+  .cal-day.today .cal-dot-red   { background: rgba(255,180,180,0.95); }
   .cal-day.other-month { opacity: 0.3; }
   .cal-day.selected { background: var(--accent-dim); color: var(--accent-light); border: 1px solid rgba(124,106,247,0.3); }
 
@@ -397,6 +405,36 @@
     background: var(--border);
   }
 
+  /* 区块右侧删除模式切换按钮（放在 ::after 伪元素前，自然贴右）*/
+  .section-delete-btn {
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 1px 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+  }
+  .section-delete-btn:hover { color: var(--red); }
+  .section-delete-btn.active { color: var(--red); }
+
+  /* 各任务条目上的删除 X */
+  .item-delete-btn {
+    display: none;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .item-delete-btn:hover { color: var(--red); background: var(--red-dim); }
+  .delete-mode-on .item-delete-btn { display: block; }
+
   /* Today Focus */
   .focus-items {
     display: flex;
@@ -417,7 +455,20 @@
     border: 1px solid transparent;
   }
   .focus-item:hover { border-color: var(--border); background: var(--surface3); }
-  .focus-item.done { opacity: 0.45; }
+  .focus-item.done { opacity: 0.5; filter: brightness(0.7); }
+  .focus-item.done .focus-title { text-decoration: line-through; }
+  
+  .qa-date-opt:hover, .qa-picker-row:hover { background: var(--surface3) !important; }
+  
+  .sched-item.due { border-color: var(--red); }
+  
+  /* Picker dropdown row base */
+  .picker-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; transition: background 0.1s;
+  }
+  .picker-row:hover { background: var(--surface3); }
 
   .focus-check {
     width: 18px; height: 18px;
@@ -450,6 +501,112 @@
   .tag-job { background: var(--orange-dim); color: var(--orange); }
   .tag-life { background: var(--green-dim); color: var(--green); }
   .tag-urgent { background: var(--red-dim); color: var(--red); }
+
+  /* 求职状态标签 */
+  .job-status {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .job-status:hover { opacity: 0.8; }
+  .job-status-today   { background: rgba(248,113,113,0.15); color: var(--red);    border: 1px solid rgba(248,113,113,0.3); }
+  .job-status-week    { background: rgba(251,146,60,0.15);  color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
+  .job-status-date    { background: rgba(96,165,250,0.15);  color: var(--blue);   border: 1px solid rgba(96,165,250,0.3); }
+  .job-status-ongoing { background: rgba(74,222,128,0.12);  color: var(--green);  border: 1px solid rgba(74,222,128,0.25); }
+  .job-status-tbd     { background: var(--surface3);        color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* 求职状态选择器 */
+  .job-status-picker {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 200;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .job-status-picker.open { display: block; }
+  .job-status-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.1s;
+  }
+  .job-status-option:hover { background: var(--surface3); }
+  .job-status-date-input {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* 求职状态标签 */
+  .job-status {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: default;
+  }
+  .job-status-today   { background: var(--red-dim);    color: var(--red);          border: 1px solid rgba(248,113,113,0.25); }
+  .job-status-week    { background: var(--orange-dim);  color: var(--orange);       border: 1px solid rgba(251,146,60,0.25); }
+  .job-status-date    { background: var(--blue-dim);    color: var(--blue);         border: 1px solid rgba(96,165,250,0.25); }
+  .job-status-ongoing { background: var(--green-dim);   color: var(--green);        border: 1px solid rgba(74,222,128,0.25); }
+  .job-status-pending { background: var(--surface3);    color: var(--text-muted);   border: 1px solid var(--border); }
+
+  /* 状态选择器下拉 */
+  .job-status-picker {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 200;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none;
+  }
+  .job-status-picker.open { display: block; }
+  .job-status-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.1s;
+  }
+  .job-status-opt:hover { background: var(--surface3); }
+  .job-date-input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 5px 8px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    display: none;
+  }
+  .job-date-input.visible { display: block; }
+  .job-date-input:focus { border-color: var(--accent); }
 
   .focus-time {
     font-size: 11px;
@@ -1263,7 +1420,7 @@
     <div class="today-badges">
       <span class="badge badge-class" id="badgeClass" onclick="goToTodaySchedule()" title="点击查看今日课表">3节课</span>
       <span class="badge badge-due" id="badgeDue" onclick="goToDueTimeline()" title="点击查看Due时间线">2个Due临近</span>
-      <span class="badge badge-task" id="badgeTask" onclick="goToTodayFocus()" title="点击查看今日聚焦">5个待办</span>
+      <span class="badge badge-task" id="badgeTask" onclick="goToTodayFocus()" title="点击查看今日聚焦">0个待办</span>
     </div>
   </div>
   <div class="topbar-right">
@@ -1289,8 +1446,9 @@
     </div>
     <div class="panel-body">
       <input type="file" id="calImportInput" accept=".ics,text/calendar" style="display:none" onchange="handleCalendarFile(event)">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-        <span class="panel-action" onclick="document.getElementById('calImportInput').click()">导入 Apple Calendar</span>
+      <div style="display:flex; justify-content:flex-end; gap:6px; margin-bottom:10px;">
+        <span class="panel-action" id="syncCalBtn" onclick="syncCambridgeTimetable()" title="从剑桥课表 URL 一键同步">🔄 同步课表</span>
+        <span class="panel-action" onclick="document.getElementById('calImportInput').click()">导入 .ics 文件</span>
       </div>
       <div class="cal-nav">
         <div class="cal-nav-btn" onclick="prevMonth()">‹</div>
@@ -1334,90 +1492,75 @@
       <!-- TODAY -->
       <div class="tab-content active" id="tab-today">
         <div class="section-label" style="margin-bottom:12px" id="todayFocusLabel">AI为你生成的今日计划</div>
-        <div class="focus-items" id="todayFocusItems">
-          <div class="focus-item" id="fi1">
-            <div class="focus-check" onclick="toggleCheck(this,'fi1')"></div>
-            <div class="focus-info">
-              <div class="focus-title">完成 OS Lab 2 · 最后收尾</div>
-              <div class="focus-meta">
-                <span class="tag tag-course">COMP3511</span>
-                <span>预计 1.5h</span>
-              </div>
-            </div>
-            <div class="focus-time">截止 明天</div>
-          </div>
-          <div class="focus-item" id="fi2">
-            <div class="focus-check" onclick="toggleCheck(this,'fi2')"></div>
-            <div class="focus-info">
-              <div class="focus-title">ML Assignment 1 · 数据预处理</div>
-              <div class="focus-meta">
-                <span class="tag tag-course">COMP4421</span>
-                <span>预计 2h</span>
-              </div>
-            </div>
-            <div class="focus-time">Week 5末</div>
-          </div>
-          <div class="focus-item" id="fi3">
-            <div class="focus-check checked" onclick="toggleCheck(this,'fi3')">✓</div>
-            <div class="focus-info">
-              <div class="focus-title">修改简历并投递字节跳动</div>
-              <div class="focus-meta">
-                <span class="tag tag-job">求职</span>
-                <span>预计 1h</span>
-              </div>
-            </div>
-            <div class="focus-time">今日</div>
-          </div>
-          <div class="focus-item" id="fi4">
-            <div class="focus-check" onclick="toggleCheck(this,'fi4')"></div>
-            <div class="focus-info">
-              <div class="focus-title">消化理解 DB 今日课程内容</div>
-              <div class="focus-meta">
-                <span class="tag tag-course">COMP3632</span>
-                <span>预计 30min</span>
-              </div>
-            </div>
-            <div class="focus-time">今晚</div>
-          </div>
-          <div class="focus-item" id="fi5">
-            <div class="focus-check" onclick="toggleCheck(this,'fi5')"></div>
-            <div class="focus-info">
-              <div class="focus-title">去超市买东西（清单里有5项）</div>
-              <div class="focus-meta">
-                <span class="tag tag-life">生活</span>
-                <span>购物清单已准备</span>
-              </div>
-            </div>
-            <div class="focus-time">下午</div>
-          </div>
-        </div>
+        <div class="focus-items" id="todayFocusItems"></div>
 
         <div class="section-label">快速添加</div>
         <div class="add-item" style="flex-direction: column; gap: 8px;">
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <input type="date" id="quickAddDate" class="add-input" style="flex: 0 0 auto; width: 140px;" value="">
-            <select class="add-input" id="quickAddCategory" style="width: 90px;" onchange="onQuickAddCategoryChange()">
-              <option value="待办">待办</option>
-              <option value="课程">课程</option>
-              <option value="求职">求职</option>
-              <option value="其它">其它</option>
-            </select>
-            <select class="add-input" id="quickAddCourse" style="width: 120px; display:none;" title="选择具体课程">
-              <option value="">选择课程</option>
-            </select>
-            <select class="add-input" id="quickAddOther" style="width: 120px; display:none;" title="选择或输入其它类别">
-              <option value="">选择/输入</option>
-            </select>
-            <input class="add-input" id="quickAddOtherInput" placeholder="新类别名" style="width: 90px; display:none;">
             <input class="add-input" id="quickAddInput" placeholder="添加待办任务..." style="flex: 1; min-width: 120px;" onkeydown="quickAddKeydown(event)">
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <!-- 日期选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div class="qa-picker-btn" id="qaDateBtn" onclick="toggleQAPicker('qaDatePicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:90px;">
+                <span>📅</span><span id="qaDateLabel">日期</span>
+              </div>
+              <div id="qaDatePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">建议</div>
+                <div class="qa-date-opt" onclick="setQADate('today')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">今天</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_today"></span></div>
+                <div class="qa-date-opt" onclick="setQADate('tomorrow')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">明天</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_tomorrow"></span></div>
+                <div class="qa-date-opt" onclick="setQADate('weekend')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">本周末</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_weekend"></span></div>
+                <div class="qa-date-opt" onclick="setQADate('nextweek')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">下周</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_nextweek"></span></div>
+                <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
+                <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;">
+                  <span style="font-size:11px;color:var(--text-muted);">自定义...</span>
+                  <input type="date" id="qaDateCustom" class="add-input" style="flex:1;font-size:11px;padding:4px 8px;" oninput="setQADateCustom()">
+                </div>
+              </div>
+            </div>
+            <!-- 时间选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div class="qa-picker-btn" id="qaTimeBtn" onclick="toggleQAPicker('qaTimePicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:90px;">
+                <span>⏰</span><span id="qaTimeLabel">添加时间</span>
+              </div>
+              <div id="qaTimePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">开始时间</div>
+                <input type="time" id="qaTimeStart" class="add-input" style="width:100%;font-size:12px;margin-bottom:8px;" oninput="updateQATimeLabel()">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">结束时间（可选）</div>
+                <input type="time" id="qaTimeEnd" class="add-input" style="width:100%;font-size:12px;" oninput="updateQATimeLabel()">
+                <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:6px;">
+                  <span class="panel-action" onclick="clearQATime()">清除</span>
+                  <span class="panel-action" onclick="closeQAPicker('qaTimePicker')">确认</span>
+                </div>
+              </div>
+            </div>
+            <!-- 类别选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div class="qa-picker-btn" id="qaCatBtn" onclick="toggleQAPicker('qaCatPicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
+                <span>🏷</span><span id="qaCatLabel">类别</span>
+              </div>
+              <div id="qaCatPicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择类别</div>
+                <div id="qaCatList" style="display:flex;flex-direction:column;gap:2px;"></div>
+                <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
+                  <span class="panel-action" onclick="showQACatAdd()" title="添加新类别">＋</span>
+                  <span class="panel-action" onclick="toggleQACatDelete()" title="删除模式">－</span>
+                </div>
+                <div id="qaCatAddForm" style="display:none;margin-top:8px;">
+                  <div style="display:flex;gap:6px;">
+                    <input class="add-input" id="qaCatAddInput" placeholder="新类别名" style="flex:1;font-size:11px;" onkeydown="if(event.key==='Enter')confirmQACatAdd()">
+                    <span class="panel-action" onclick="confirmQACatAdd()">确认</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <button class="add-btn" onclick="quickAdd()">+ 添加</button>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
-            💡 选择日期可添加未来任务；课程与 Due 时间线课程列表同步；求职与找工作板块同步显示
-          </div>
+          <!-- 备注 -->
+          <input class="add-input" id="quickAddNote" placeholder="备注（可选，如预计完成时间）" style="font-size:11px;">
         </div>
 
-        <div class="section-label" id="todayArchiveLabel" style="margin-top:12px; display:none;">已归档任务</div>
+        <div class="section-label" id="todayArchiveLabel" style="margin-top:12px; display:none;">已归档任务 <span class="section-delete-btn" id="todayArchiveDeleteBtn" onclick="toggleArchiveDeleteMode('todayArchiveList','todayArchiveDeleteBtn')">✕</span></div>
         <div class="focus-items" id="todayArchiveList"></div>
       </div>
 
@@ -1425,39 +1568,60 @@
       <div class="tab-content" id="tab-timeline">
         <div class="section-label" style="margin-bottom:12px">长期任务进度追踪</div>
         <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">分类：<span class="tag tag-urgent" style="margin-right:4px;">逾期</span><span class="tag tag-urgent" style="margin-right:4px;">紧急</span><span class="tag tag-course" style="margin-right:4px;">进行中</span><span class="tag tag-life">充裕</span></div>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-          <button type="button" class="due-action-btn" id="archiveAllDueBtn" onclick="archiveAllDueItems()" title="将所有未完成 Due 标为 100% 并移入已完成">✓ 全部标为100%并归档</button>
-        </div>
+        <!-- Auto-archive on 100% - no manual button needed -->
         <div id="dueList">
           <!-- Due任务将通过JS动态渲染 -->
         </div>
 
-        <div class="section-label" style="margin-top:16px">已完成 due</div>
-        <div id="dueListArchived">
-          <!-- 已归档的 Due 将在此显示 -->
-        </div>
+        <div class="section-label" style="margin-top:16px">已完成 due <span class="section-delete-btn" id="dueArchiveDeleteBtn" onclick="toggleArchiveDeleteMode('dueListArchived','dueArchiveDeleteBtn')">✕</span></div>
+        <div id="dueListArchived"></div>
 
         <div class="section-label" style="margin-top:16px">快速添加长期任务</div>
         <div class="add-item" style="flex-direction: column; gap: 8px;">
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input class="add-input" id="dueTitleInput" placeholder="任务标题" style="flex: 1; min-width: 200px;">
-            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
-              <select class="add-input" id="dueCourseSelect" style="width: 130px;" onchange="onDueCourseSelectChange()">
-                <option value="">选择课程</option>
-              </select>
-              <input class="add-input" id="dueCourseInput" placeholder="新课程名" style="width: 100px;">
-              <span class="due-action-btn" onclick="dueCourseAddNew()" title="将上方输入的新课程加入列表">[+]</span>
-              <span class="due-action-btn" onclick="toggleCourseManagePanel()" title="管理/删除课程">[-]</span>
+            <!-- 课程选择器 (下拉+加减) -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div onclick="toggleQAPicker('dueCoursePickerDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:110px;">
+                <span>📚</span><span id="dueCourseSelectedLabel">选择课程</span>
+              </div>
+              <div id="dueCoursePickerDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择课程</div>
+                <div id="dueCoursePickerList" style="display:flex;flex-direction:column;gap:2px;"></div>
+                <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
+                  <span class="panel-action" onclick="showDueCourseAdd()">＋</span>
+                  <span class="panel-action" onclick="toggleDueCourseDelete()">－</span>
+                </div>
+                <div id="dueCourseAddForm" style="display:none;margin-top:8px;">
+                  <div style="display:flex;gap:6px;">
+                    <input class="add-input" id="dueCourseAddInput" placeholder="新课程名" style="flex:1;font-size:11px;" onkeydown="if(event.key==='Enter')confirmDueCourseAdd()">
+                    <span class="panel-action" onclick="confirmDueCourseAdd()">确认</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <input type="date" class="add-input" id="dueDeadlineInput" style="flex: 0 0 auto; width: 160px;" placeholder="截止日期">
+            <!-- 截止日期选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div onclick="toggleQAPicker('dueDeadlineDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:110px;">
+                <span>📅</span><span id="dueDeadlineLabel">截止日期</span>
+              </div>
+              <div id="dueDeadlineDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择截止日期</div>
+                <input type="date" id="dueDeadlineInput" class="add-input" style="width:100%;font-size:12px;margin-bottom:8px;" oninput="updateDueDeadlineLabel()">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">截止时间节点（可选）</div>
+                <input type="time" id="dueDeadlineTime" class="add-input" style="width:100%;font-size:12px;" oninput="updateDueDeadlineLabel()">
+                <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:6px;">
+                  <span class="panel-action" onclick="closePicker('dueDeadlineDrop')">确认</span>
+                </div>
+              </div>
+            </div>
             <button class="add-btn" onclick="addDueItem()">+ 添加</button>
           </div>
-          <div id="courseManagePanel" style="display:none; margin-top:8px; padding:10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border);">
-            <div style="font-size: 11px; font-weight: 600; margin-bottom: 8px;">管理课程 · 点击删除</div>
-            <div id="courseManageList"></div>
-          </div>
+          <!-- Hidden inputs for backward compat -->
+          <input type="hidden" id="dueCourseSelect">
+          <input type="hidden" id="dueCourseInput">
           <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px;">
-            💡 添加任务后，点击"查看步骤"可以添加子任务并设置截止时间；课程与今日聚焦「课程」类别同步
+            💡 添加任务后，点击"查看步骤"可添加子任务；子任务导入日历后同步到今日聚焦
           </div>
         </div>
       </div>
@@ -1465,79 +1629,73 @@
       <!-- JOB -->
       <div class="tab-content" id="tab-job">
         <div class="section-label" style="margin-bottom:12px">求职进度追踪</div>
-        <div class="focus-items">
-          <div class="focus-item" id="jb1">
-            <div class="focus-check checked" onclick="toggleCheck(this,'jb1')">✓</div>
-            <div class="focus-info">
-              <div class="focus-title">字节跳动 · 更新简历</div>
-              <div class="focus-meta"><span class="tag tag-job">实习</span><span>后端工程师</span></div>
-            </div>
-            <div class="focus-time">今日完成</div>
-          </div>
-          <div class="focus-item" id="jb2">
-            <div class="focus-check" onclick="toggleCheck(this,'jb2')"></div>
-            <div class="focus-info">
-              <div class="focus-title">阿里云 · 投递岗位</div>
-              <div class="focus-meta"><span class="tag tag-job">实习</span><span>Java后端</span></div>
-            </div>
-            <div class="focus-time">本周内</div>
-          </div>
-          <div class="focus-item" id="jb3">
-            <div class="focus-check" onclick="toggleCheck(this,'jb3')"></div>
-            <div class="focus-info">
-              <div class="focus-title">准备 LeetCode 刷题计划</div>
-              <div class="focus-meta"><span class="tag tag-job">技术准备</span><span>每天1-2题</span></div>
-            </div>
-            <div class="focus-time">持续</div>
-          </div>
-          <div class="focus-item" id="jb4">
-            <div class="focus-check" onclick="toggleCheck(this,'jb4')"></div>
-            <div class="focus-info">
-              <div class="focus-title">整理 GitHub Portfolio</div>
-              <div class="focus-meta"><span class="tag tag-job">材料准备</span><span>展示项目</span></div>
-            </div>
-            <div class="focus-time">下周前</div>
-          </div>
-        </div>
+        <div class="focus-items" id="jobList"></div>
+
+        <!-- 已完成求职任务 -->
+        <div class="section-label" id="jobDoneLabel" style="margin-top:16px;display:none;">已完成 <span class="section-delete-btn" id="jobDoneDeleteBtn" onclick="toggleArchiveDeleteMode('jobDoneList','jobDoneDeleteBtn')">✕</span></div>
+        <div class="focus-items" id="jobDoneList"></div>
+
         <div class="section-label" style="margin-top:16px">求职灵感</div>
         <div class="focus-item" style="border: 1px dashed var(--border); background: transparent; cursor:default;">
           <div style="font-size:20px">💡</div>
           <div class="focus-info">
-            <div class="focus-title" style="font-size:12px">可以做一个个人技术博客，增加面试竞争力</div>
-            <div class="focus-meta"><span style="font-size:10px; color: var(--text-muted)">2月17日记录</span></div>
+            <div class="focus-title" style="font-size:12px">记录想法与灵感，随时回顾</div>
+            <div class="focus-meta"><span style="font-size:10px; color: var(--text-muted)">点击下方添加任务开始追踪</span></div>
           </div>
         </div>
-        <div class="add-item" style="margin-top:10px">
-          <input class="add-input" id="jobInput" placeholder="记录求职灵感或添加任务..." onkeydown="jobAddKeydown(event)">
-          <button class="add-btn" onclick="jobAdd()">+ 添加</button>
+        <div class="add-item" style="margin-top:10px;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input class="add-input" id="jobInput" placeholder="任务名称..." style="flex:1;min-width:120px;" onkeydown="jobAddKeydown(event)">
+            <!-- 求职类别选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div onclick="toggleQAPicker('jobCatDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
+                <span>🏷</span><span id="jobCatLabel">类别</span>
+              </div>
+              <div id="jobCatDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择类别</div>
+                <div id="jobCatPickerList" style="display:flex;flex-direction:column;gap:2px;"></div>
+                <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
+                  <span class="panel-action" onclick="showJobCatAdd()">＋</span>
+                  <span class="panel-action" onclick="toggleJobCatDelete()">－</span>
+                </div>
+                <div id="jobCatAddForm" style="display:none;margin-top:8px;">
+                  <div style="display:flex;gap:6px;">
+                    <input class="add-input" id="jobCatAddInput" placeholder="新类别名" style="flex:1;font-size:11px;" onkeydown="if(event.key==='Enter')confirmJobCatAdd()">
+                    <span class="panel-action" onclick="confirmJobCatAdd()">确认</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 状态选择器 -->
+            <div class="qa-picker-wrapper" style="position:relative;">
+              <div onclick="toggleQAPicker('jobStatusDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
+                <span>⏱</span><span id="jobStatusLabel">状态</span>
+              </div>
+              <div id="jobStatusDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <div class="job-status-opt" onclick="selectNewJobStatus('today')"><span class="job-status job-status-today">今日必做</span><span style="font-size:11px;color:var(--text-muted)">同步今日聚焦</span></div>
+                <div class="job-status-opt" onclick="selectNewJobStatus('week')"><span class="job-status job-status-week">本周内</span><span style="font-size:11px;color:var(--text-muted)">同步今日聚焦</span></div>
+                <div class="job-status-opt" onclick="selectNewJobStatus('date')"><span class="job-status job-status-date">指定日期</span><span style="font-size:11px;color:var(--text-muted)">可打通 Due</span></div>
+                <div class="job-status-opt" onclick="selectNewJobStatus('ongoing')"><span class="job-status job-status-ongoing">持续进行</span><span style="font-size:11px;color:var(--text-muted)">长期任务</span></div>
+                <div class="job-status-opt" onclick="selectNewJobStatus('tbd')"><span class="job-status job-status-tbd">待定</span><span style="font-size:11px;color:var(--text-muted)">还没想好</span></div>
+                <div id="jobStatusDateWrap" style="display:none;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+                  <input type="date" id="jobStatusDateInput" class="job-date-input visible" oninput="confirmJobStatusDate()" style="display:block;">
+                  <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="jobSyncDue" style="accent-color:var(--accent);">
+                    <label for="jobSyncDue" style="font-size:11px;color:var(--text-muted);cursor:pointer;">同时加入 Due 时间线</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="add-btn" onclick="jobAdd()">+ 添加</button>
+          </div>
+          <input class="add-input" id="jobNote" placeholder="备注（可选，如：后端工程师 / 每天1-2题）" style="font-size:11px;">
         </div>
       </div>
 
       <!-- SHOP -->
       <div class="tab-content" id="tab-shop">
-        <div class="section-label" style="margin-bottom:12px">🛒 购物清单 · 待购 5 项</div>
-        <div class="shop-list" id="shopList">
-          <div class="shop-item" id="sh1">
-            <div class="shop-check" onclick="toggleShop(this,'sh1')"></div>
-            牛奶 × 2
-          </div>
-          <div class="shop-item" id="sh2">
-            <div class="shop-check" onclick="toggleShop(this,'sh2')"></div>
-            鸡蛋 × 12
-          </div>
-          <div class="shop-item" id="sh3">
-            <div class="shop-check" onclick="toggleShop(this,'sh3')"></div>
-            西兰花
-          </div>
-          <div class="shop-item" id="sh4">
-            <div class="shop-check" onclick="toggleShop(this,'sh4')"></div>
-            洗发水
-          </div>
-          <div class="shop-item" id="sh5">
-            <div class="shop-check" onclick="toggleShop(this,'sh5')"></div>
-            咖啡豆 500g
-          </div>
-        </div>
+        <div class="section-label" style="margin-bottom:12px" id="shopLabel">🛒 购物清单 · 待购 0 项</div>
+        <div class="shop-list" id="shopList"></div>
         <div class="add-item" style="margin-top:12px">
           <input class="add-input" id="shopInput" placeholder="随时记录要买的东西..." onkeydown="shopAddKeydown(event)">
           <button class="add-btn" onclick="shopAdd()">+ 添加</button>
@@ -1564,60 +1722,18 @@
 
     <div class="ai-messages" id="aiMessages">
       <div class="msg msg-ai">
-        <div class="msg-bubble">你好！我是 Flow AI，由 Claude (Anthropic) 驱动 🎉<br><br>
-        ⚡ <strong>ML Assignment 1</strong> 距截止还有 3 天，建议今天完成"训练模型"这步<br><br>
-        📅 数据库 Group Project 刚开始，可以趁现在进度宽松规划好后续步骤<br><br>
-        告诉我任何大任务，我来帮你拆解然后自动排入日历 ✨<br><br>
-        <span style="font-size:10px;color:var(--text-muted)">💡 我能看到你所有任务的最新状态，回复会结合你的真实进度</span></div>
-        <div class="msg-time">09:15</div>
-      </div>
-
-      <div class="msg msg-user">
-        <div class="msg-bubble">我有个OS Final Report要在4月25日交，我需要做文献调研和写报告，大概要2-3周才能完成</div>
-        <div class="msg-time">09:32</div>
-      </div>
-
-      <div class="msg msg-ai">
-        <div class="msg-bubble">收到！我帮你把 OS Final Report 拆解成可执行的步骤，并安排到你的空闲时间段 👇</div>
-        <div class="msg-time">09:32</div>
-      </div>
-
-      <div class="msg msg-ai">
-        <div class="msg-bubble">
-          <div class="ai-import-card">
-            <div class="ai-import-title">📋 OS Final Report 拆解方案</div>
-            <div class="ai-task-row">
-              <span>确定题目与方向</span>
-              <span class="ai-task-week">Week 6 · 2h</span>
-            </div>
-            <div class="ai-task-row">
-              <span>文献调研（10篇）</span>
-              <span class="ai-task-week">Week 7 · 6h</span>
-            </div>
-            <div class="ai-task-row">
-              <span>整理笔记与大纲</span>
-              <span class="ai-task-week">Week 8 · 2h</span>
-            </div>
-            <div class="ai-task-row">
-              <span>正文写作（初稿）</span>
-              <span class="ai-task-week">Week 10-11 · 10h</span>
-            </div>
-            <div class="ai-task-row">
-              <span>修改润色提交</span>
-              <span class="ai-task-week">Week 12 · 3h</span>
-            </div>
-            <button class="import-btn" onclick="handleImport()">⚡ 一键导入日历</button>
-          </div>
-        </div>
-        <div class="msg-time">09:32</div>
+        <div class="msg-bubble">你好！我是 Flow AI 🎉<br><br>
+        告诉我任何大任务，我来帮你拆解然后自动排入日历。<br><br>
+        <span style="font-size:10px;color:var(--text-muted)">💡 添加任务后，我会结合你的进度给出建议</span></div>
+        <div class="msg-time"></div>
       </div>
     </div>
 
     <div class="ai-suggestions">
       <div class="suggestion-chip" onclick="useChip(this)">帮我安排今天下午</div>
-      <div class="suggestion-chip" onclick="useChip(this)">拆解 DB Project</div>
+      <div class="suggestion-chip" onclick="useChip(this)">拆解一个大任务</div>
       <div class="suggestion-chip" onclick="useChip(this)">我有2小时空闲</div>
-      <div class="suggestion-chip" onclick="useChip(this)">找实习建议</div>
+      <div class="suggestion-chip" onclick="useChip(this)">规划本周任务</div>
     </div>
 
     <div class="ai-input-area">
@@ -1634,7 +1750,7 @@
     <div class="journal-toggle-left">
       <span>📔</span>
       <span>心情 & 灵感日记</span>
-      <span class="badge badge-task" style="font-size:10px;">今日已记 1 条</span>
+      <span class="badge badge-task" style="font-size:10px;">今日已记 0 条</span>
     </div>
     <div class="journal-toggle-right">
       <span>点击展开</span>
@@ -1642,29 +1758,7 @@
     </div>
   </div>
   <div class="journal-content" id="journalContent">
-    <div class="journal-entries" id="journalEntries">
-      <div class="journal-entry">
-        <div class="entry-header">
-          <span class="entry-date">2月19日 09:15</span>
-          <span class="entry-mood">😊</span>
-        </div>
-        <div class="entry-text">早上喝了咖啡，感觉状态不错，今天应该能搞定ML的模型训练</div>
-      </div>
-      <div class="journal-entry">
-        <div class="entry-header">
-          <span class="entry-date">2月18日 晚上</span>
-          <span class="entry-mood">😩</span>
-        </div>
-        <div class="entry-text">OS实验报错一下午，有点沮丧，但最后找到bug了感觉好多了</div>
-      </div>
-      <div class="journal-entry">
-        <div class="entry-header">
-          <span class="entry-date">2月17日 下午</span>
-          <span class="entry-mood">💡</span>
-        </div>
-        <div class="entry-text">灵感：可以做个个人技术博客增加求职竞争力，用Next.js做</div>
-      </div>
-    </div>
+    <div class="journal-entries" id="journalEntries"></div>
     <div class="journal-new">
       <textarea class="journal-new-input" id="journalInput" placeholder="此刻的心情或灵感..."></textarea>
       <div class="journal-actions">
@@ -1684,43 +1778,55 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// Core data structures (declared first to avoid temporal dead zone errors)
+// ============================================================
+// ALL STATE VARIABLES — declared first to avoid temporal dead zone
+// ============================================================
 let dueTasks = {};
+let dayTasks = {};
+let dayFocusTasks = {};
+let courseList = [];
+let customCategories = [];
 
-// === CALENDAR ===
-let currentDate = new Date(2025, 1, 1); // Feb 2025
-const today = 19;
-let selectedDateKey = '2025-02-19'; // 当前选中的日期
+// Calendar state
+let currentDate = new Date(); currentDate.setDate(1);
+let selectedDateKey = '';
 
+// QA Picker state
+let qaSelectedDate = null;
+let qaSelectedTimeStart = '';
+let qaSelectedTimeEnd = '';
+let qaSelectedCategory = null;
+let qaCatDeleteMode = false;
+let qaCourseExpanded = false;
+let jobCatDeleteMode = false;
+let dueCourseDeleteMode = false;
+
+// Built-in categories
+const BUILTIN_CATS = [
+  { value: '课程', text: '课程', cls: 'tag-course' },
+  { value: '求职', text: '求职', cls: 'tag-job' },
+  { value: '生活', text: '生活', cls: 'tag-life' },
+];
+
+// Due course picker
+let selectedDueCourse = '';
+
+// Job categories
+let jobCategories = ['实习', '全职', '技术准备', '材料准备'];
+let selectedJobCat = null;
+
+// Calendar constants
 const dows = ['日','一','二','三','四','五','六'];
+
+
 const dueDays = [21, 28];
 const eventDays = [3,5,10,12,17,19,24,26];
 
 // 每天的任务数据：dayTasks 存储日历事件，dayFocusTasks 存储用户添加的待办任务
-let dayTasks = {
-  '2025-02-19': [
-    { time: '09:00 – 10:30', name: 'COMP3511 操作系统', tag: '📍 LT-A', type: 'course' },
-    { time: '10:30 – 12:00', name: 'OS Lab 2 收尾', tag: '✦ AI建议安排', type: 'task' },
-    { time: '13:00 – 14:30', name: 'COMP3632 数据库', tag: '📍 Room 2302', type: 'course' },
-    { time: '15:00 – 16:00', name: '修改简历 · 字节跳动', tag: '🎯 求职任务', type: 'job' },
-    { time: '16:00 – 17:30', name: 'COMP4421 机器学习', tag: '📍 LSK G013', type: 'course' },
-    { time: '⚠ 截止 Week 5 末', name: 'ML Assignment 1', tag: '已完成 2/4 步', type: 'due' }
-  ],
-  '2025-02-21': [
-    { time: '14:00 – 16:00', name: 'ML Assignment 1 · 模型训练', tag: '📍 学校图书馆', type: 'task' }
-  ],
-  '2025-02-28': [
-    { time: '整天', name: '复盘本月课程 · 整理笔记', tag: '📝 月度回顾', type: 'task' }
-  ]
-};
+// 演示数据改为在「未从 localStorage 恢复」时再注入，避免覆盖已保存数据
 
 // 每天的用户待办任务（按日期分组）
-let dayFocusTasks = {};
-
-// 课程列表（Due 与今日聚焦「课程」类别共用，可 [+] 添加、[-] 管理删除）
-let courseList = [];
-// 今日聚焦「其它」类别的自定义名称（可输入新名称并自动保存）
-let customCategories = [];
+// dayFocusTasks, courseList, customCategories — declared at top
 
 // === LOCALSTORAGE PERSISTENCE ===
 const STORAGE_KEY = 'flowPlannerData';
@@ -1737,13 +1843,18 @@ function saveToStorage() {
       journalEntries: serializeJournalEntries(),
       courseList: courseList,
       customCategories: customCategories,
+      jobCategories: jobCategories,
       version: '1.3'
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
     console.warn('保存数据失败:', e);
   }
+  // 每次数据变化后同步更新顶部提醒徽标
+  if (typeof updateTopbar === 'function') updateTopbar();
 }
+// 刷新/关闭页面前再保存一次，确保最后改动被写入
+window.addEventListener('beforeunload', function() { saveToStorage(); });
 
 function loadFromStorage() {
   try {
@@ -1760,6 +1871,7 @@ function loadFromStorage() {
     if (data.journalEntries) restoreJournalEntries(data.journalEntries);
     if (Array.isArray(data.courseList)) courseList = data.courseList;
     if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
+    if (Array.isArray(data.jobCategories)) jobCategories = data.jobCategories;
     return true;
   } catch (e) {
     console.warn('加载数据失败:', e);
@@ -1812,28 +1924,100 @@ function renderTodayFocus(dateKey) {
       item.className = 'focus-item done';
       item.id = task.id;
       item.innerHTML = task.html;
+      // 清除已存储 html 中残留的旧删除按钮，重新绑定
+      item.querySelectorAll('.item-delete-btn').forEach(b => b.remove());
+      const delBtn = document.createElement('span');
+      delBtn.className = 'item-delete-btn';
+      delBtn.textContent = '✕';
+      delBtn.onclick = () => deleteArchivedFocusItem(task.id, dateKey);
+      item.appendChild(delBtn);
       archiveList.appendChild(item);
     });
-    archiveLabel.style.display = 'block';
+    archiveLabel.style.display = 'flex'; // flex 保持 section-label 布局
   }
   
-  // 求职：找工作板块的求职进度追踪自动同步到今日聚焦（显示为求职类别）
-  const jobList = document.querySelector('#tab-job .focus-items');
-  if (jobList && dateKey === getTodayKey()) {
-    jobList.querySelectorAll('.focus-item').forEach(function(jobEl) {
-      var jTitle = jobEl.querySelector('.focus-title');
-      var jMeta = jobEl.querySelector('.focus-meta');
-      var jTime = jobEl.querySelector('.focus-time');
-      if (!jTitle) return;
-      var jobId = 'job_' + (jobEl.id || '') + '_' + dateKey;
-      var jobHtml = '<div class="focus-check" onclick="toggleCheck(this,\'' + jobId + '\')"></div><div class="focus-info"><div class="focus-title">' + (jTitle.textContent || '').replace(/</g, '&lt;') + '</div><div class="focus-meta"><span class="tag tag-job">求职</span></div></div><div class="focus-time">' + (jTime ? jTime.textContent : '') + '</div>';
-      var jobItem = document.createElement('div');
-      jobItem.className = 'focus-item';
-      jobItem.id = jobId;
-      jobItem.innerHTML = jobHtml;
-      list.appendChild(jobItem);
+  // ── 求职任务同步：今日/本周状态的任务若不在 dayFocusTasks 里则补充存入 ──
+  if (dateKey === getTodayKey()) {
+    const jobList = document.getElementById('jobList');
+    if (jobList) {
+      jobList.querySelectorAll('.focus-item').forEach(function(jobEl) {
+        const jTitle = jobEl.querySelector('.focus-title');
+        if (!jTitle) return;
+        const statusTag = jobEl.querySelector('.job-status');
+        const statusCls = statusTag ? statusTag.className : '';
+        const shouldSync = statusCls.includes('job-status-today') || statusCls.includes('job-status-week');
+        if (!shouldSync) return;
+        const syncId = 'jobsync_' + jobEl.id;
+        // 如果已经在 dayFocusTasks 里就跳过（会由上面的正常渲染流程显示）
+        if (tasks.find(t => t.id === syncId)) return;
+        // 否则补充存入（首次同步）
+        const title = jTitle.textContent || '';
+        const statusLabel = statusTag ? statusTag.textContent : '';
+        const catEl = jobEl.querySelector('.tag');
+        const catHtml = catEl ? catEl.outerHTML : '';
+        const isChecked = jobEl.querySelector('.focus-check')?.classList.contains('checked') || false;
+        const itemHtml = `<div class="focus-check${isChecked ? ' checked' : ''}" onclick="focusCheck(this,'${syncId}')">${isChecked ? '✓' : ''}</div><div class="focus-info"><div class="focus-title">${title}</div><div class="focus-meta">${catHtml}<span class="tag tag-job" style="opacity:0.7">求职</span></div></div><div class="focus-time">${statusLabel}</div>`;
+        if (!dayFocusTasks[dateKey]) dayFocusTasks[dateKey] = [];
+        dayFocusTasks[dateKey].push({ id: syncId, html: itemHtml, archived: isChecked, dateKey });
+      });
+      // 新增了 jobsync 条目，立即持久化
+      saveToStorage();
+    }
+    // 重新读取 tasks（因为刚往里加了东西）
+    const updatedTasks = dayFocusTasks[dateKey] || [];
+    const updatedActive = updatedTasks.filter(t => !t.archived);
+    const updatedArchived = updatedTasks.filter(t => t.archived);
+    // 补充渲染新加入的条目
+    updatedActive.forEach(task => {
+      if (!document.getElementById(task.id)) {
+        const item = document.createElement('div');
+        item.className = 'focus-item';
+        item.id = task.id;
+        item.innerHTML = task.html;
+        list.appendChild(item);
+      }
+    });
+    updatedArchived.forEach(task => {
+      if (archiveList && !document.getElementById(task.id)) {
+        const item = document.createElement('div');
+        item.className = 'focus-item done';
+        item.id = task.id;
+        item.innerHTML = task.html;
+        item.querySelectorAll('.item-delete-btn').forEach(b => b.remove());
+        const delBtn = document.createElement('span');
+        delBtn.className = 'item-delete-btn';
+        delBtn.textContent = '✕';
+        delBtn.onclick = () => deleteArchivedFocusItem(task.id, dateKey);
+        item.appendChild(delBtn);
+        archiveList.appendChild(item);
+        if (archiveLabel) archiveLabel.style.display = 'flex';
+      }
     });
   }
+
+  // ── Due任务同步：将截止日期 = dateKey 的 due 任务同步到当天聚焦 ──
+  for (const dueId in dueTasks) {
+    const t = dueTasks[dueId];
+    if (t.archived) continue;
+    if (t.deadline !== dateKey) continue;
+    const syncId = 'duesync_' + dueId;
+    const alreadySaved = tasks.find(tk => tk.id === syncId);
+    if (alreadySaved) continue;
+    const total = t.steps ? t.steps.length : 0;
+    const done = t.steps ? t.steps.filter(s => s.completed).length : 0;
+    const progress = total > 0 ? Math.round((done/total)*100) : 0;
+    const metaText = t.course ? t.course : 'Due';
+    const itemHtml = `<div class="focus-check" onclick="focusCheck(this,'${syncId}')"></div><div class="focus-info"><div class="focus-title">${t.title}</div><div class="focus-meta"><span class="tag tag-urgent">Due · ${metaText}</span><span>${progress}%</span></div></div><div class="focus-time">今日截止</div>`;
+    const dueItem = document.createElement('div');
+    dueItem.className = 'focus-item';
+    dueItem.id = syncId;
+    dueItem.innerHTML = itemHtml;
+    list.appendChild(dueItem);
+    // 同步存入 dayFocusTasks，确保刷新后能持久化
+    if (!dayFocusTasks[dateKey]) dayFocusTasks[dateKey] = [];
+    dayFocusTasks[dateKey].push({ id: syncId, html: itemHtml, archived: false, dateKey });
+  }
+
   if (list.children.length === 0) {
     var empty = document.createElement('div');
     empty.className = 'empty-state';
@@ -1909,49 +2093,7 @@ function initDefaultDueTasks() {
     return;
   }
   
-  // 初始化3个示例任务
-  const defaultTasks = {
-    'dueDefault1': {
-      id: 'dueDefault1',
-      title: 'ML Assignment 1',
-      course: 'COMP4421',
-      deadline: '2025-02-22',
-      steps: [
-        { id: 'step1', name: '理解题意与数据集', date: '2025-02-10', time: '', completed: true },
-        { id: 'step2', name: '数据预处理与EDA', date: '2025-02-15', time: '', completed: true },
-        { id: 'step3', name: '训练模型与调参', date: '2025-02-19', time: '14:00', completed: false },
-        { id: 'step4', name: '撰写报告', date: '2025-02-21', time: '', completed: false }
-      ]
-    },
-    'dueDefault2': {
-      id: 'dueDefault2',
-      title: '数据库 Group Project',
-      course: 'COMP3632',
-      deadline: '2025-03-25',
-      steps: [
-        { id: 'step5', name: '确定项目主题与分工', date: '2025-02-10', time: '', completed: true },
-        { id: 'step6', name: 'ER图设计', date: '2025-02-24', time: '', completed: false },
-        { id: 'step7', name: '数据库搭建与SQL', date: '2025-03-10', time: '', completed: false },
-        { id: 'step8', name: '前端界面开发', date: '2025-03-17', time: '', completed: false },
-        { id: 'step9', name: '测试与报告', date: '2025-03-24', time: '', completed: false }
-      ]
-    },
-    'dueDefault3': {
-      id: 'dueDefault3',
-      title: 'OS Final Report',
-      course: 'COMP3511',
-      deadline: '2025-04-25',
-      steps: [
-        { id: 'step10', name: '确定题目方向', date: '2025-03-10', time: '', completed: false },
-        { id: 'step11', name: '文献调研', date: '2025-03-17', time: '', completed: false },
-        { id: 'step12', name: '主体写作', date: '2025-04-07', time: '', completed: false },
-        { id: 'step13', name: '修订提交', date: '2025-04-24', time: '', completed: false }
-      ]
-    }
-  };
-  
-  dueTasks = defaultTasks;
-  Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
+  dueTasks = {};
   renderAllDueItems();
   renderDueCourseSelect();
 }
@@ -1967,44 +2109,38 @@ function renderDueItem(task) {
   const dueTaskId = task.id;
   const stepsId = 'steps' + dueTaskId;
   
-  // 计算进度（优先使用自定义进度）
+  // Auto progress from subtasks (or custom)
   let progress = task.customProgress !== undefined ? task.customProgress : null;
-  if (progress === null || progress === undefined) {
+  if (progress === null) {
     const total = task.steps ? task.steps.length : 0;
     const completed = task.steps ? task.steps.filter(s => s.completed).length : 0;
     progress = total > 0 ? Math.round((completed / total) * 100) : 0;
   }
   
-  // 计算剩余天数
+  // Auto-archive if 100%
+  if (progress >= 100) {
+    task.archived = true;
+    saveToStorage();
+    renderDueItemArchived(task);
+    updateTopbar();
+    return;
+  }
+  
   const deadlineDate = new Date(task.deadline);
   const today = new Date();
   const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
   const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
   
-  // 确定标签颜色（Due 分类：逾期 / 紧急 / 进行中 / 充裕）
-  let tagClass = 'tag-course';
-  let tagText = '进行中';
-  let progressClass = 'fill-green';
-  if (diffDays < 0) {
-    tagClass = 'tag-urgent';
-    tagText = '⚡ 逾期';
-    progressClass = 'fill-red';
-  } else if (diffDays <= 3) {
-    tagClass = 'tag-urgent';
-    tagText = '⚡ 紧急';
-    progressClass = 'fill-orange';
-  } else if (diffDays <= 7) {
-    tagClass = 'tag-course';
-    tagText = '进行中';
-    progressClass = progress >= 50 ? 'fill-orange' : 'fill-red';
-  } else {
-    tagClass = 'tag-life';
-    tagText = '充裕';
-    progressClass = progress >= 80 ? 'fill-green' : progress >= 50 ? 'fill-orange' : 'fill-red';
-  }
+  let tagClass = 'tag-course', tagText = '进行中', progressClass = 'fill-green';
+  if (diffDays < 0) { tagClass = 'tag-urgent'; tagText = '⚡ 逾期'; progressClass = 'fill-red'; }
+  else if (diffDays <= 3) { tagClass = 'tag-urgent'; tagText = '⚡ 紧急'; progressClass = 'fill-orange'; }
+  else if (diffDays <= 7) { tagClass = 'tag-course'; tagText = '进行中'; progressClass = 'fill-orange'; }
+  else { tagClass = 'tag-life'; tagText = '充裕'; progressClass = 'fill-green'; }
   
-  const deadlineStr = formatDeadlineDisplay(task.deadline);
-  const progressMode = task.customProgress !== undefined ? '自定义' : '自动';
+  const deadlineStr = formatDeadlineDisplay(task.deadline, task.deadlineTime);
+  const hasSubtasks = task.steps && task.steps.length > 0;
+  // Only show custom progress toggle if NO subtasks
+  const showProgressToggle = !hasSubtasks;
   
   const item = document.createElement('div');
   item.className = 'due-item';
@@ -2019,28 +2155,25 @@ function renderDueItem(task) {
     </div>
     <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${progress}%"></div></div>
     <div class="due-footer">
-      <div class="due-weeks">${weeksText} · 进度 ${progress}% (${progressMode})</div>
+      <div class="due-weeks">${weeksText} · 进度 ${progress}%</div>
       <div class="due-steps" onclick="toggleSteps('${stepsId}',this)">查看步骤 ▾</div>
     </div>
+    ${showProgressToggle ? `
     <div class="progress-controls">
       <span class="progress-toggle" onclick="toggleCustomProgress('${dueTaskId}')">${task.customProgress !== undefined ? '切换到自动进度' : '切换到自定义进度'}</span>
       <div class="custom-progress-input ${task.customProgress !== undefined ? 'active' : ''}">
         <input type="range" class="progress-slider" min="0" max="100" value="${progress}" oninput="updateCustomProgress('${dueTaskId}', this.value)">
         <span class="progress-value">${progress}%</span>
       </div>
-    </div>
+    </div>` : ''}
     <div class="due-item-actions">
-      <span class="due-action-btn" onclick="archiveDueItem('${dueTaskId}')">✓ 标为100%并归档</span>
       <span class="due-action-btn delete" onclick="deleteDueItem('${dueTaskId}')">🗑 删除</span>
     </div>
     <div class="steps-list" id="${stepsId}"></div>
   `;
   
   list.appendChild(item);
-  
-  // 渲染子任务
   renderDueSteps(dueTaskId);
-  // 更新进度显示
   updateDueProgress(dueTaskId);
 }
 
@@ -2048,7 +2181,7 @@ function renderDueItemArchived(task) {
   const list = document.getElementById('dueListArchived');
   if (!list) return;
   const dueTaskId = task.id;
-  const deadlineStr = formatDeadlineDisplay(task.deadline);
+  const deadlineStr = formatDeadlineDisplay(task.deadline, task.deadlineTime);
   const item = document.createElement('div');
   item.className = 'due-item-archived';
   item.setAttribute('data-due-id', dueTaskId);
@@ -2057,7 +2190,7 @@ function renderDueItemArchived(task) {
       <div class="due-archived-title">${task.title}</div>
       <div class="due-archived-meta">📚 ${task.course} · 截止 ${deadlineStr} · 100%</div>
     </div>
-    <span class="due-action-btn delete" onclick="deleteDueItem('${dueTaskId}')">🗑 删除</span>
+    <span class="item-delete-btn" onclick="deleteArchivedDue('${dueTaskId}')">✕</span>
   `;
   list.appendChild(item);
 }
@@ -2073,35 +2206,70 @@ function renderAllDueItems() {
 }
 
 function serializeJobItems() {
-  const list = document.querySelector('#tab-job .focus-items');
-  if (!list) return [];
-  const items = [];
-  list.querySelectorAll('.focus-item').forEach(item => {
-    const check = item.querySelector('.focus-check');
-    const title = item.querySelector('.focus-title')?.textContent || '';
-    const meta = item.querySelector('.focus-meta')?.textContent || '';
-    const time = item.querySelector('.focus-time')?.textContent || '';
-    const isChecked = check?.classList.contains('checked') || false;
-    items.push({ id: item.id, title, meta, time, checked: isChecked, html: item.innerHTML });
-  });
-  return items;
+  // 保存 active 和 done 两个列表的完整 outerHTML 快照
+  const activeList = document.getElementById('jobList') || document.querySelector('#tab-job .focus-items');
+  const doneList = document.getElementById('jobDoneList');
+  const result = { active: [], done: [] };
+  if (activeList) {
+    activeList.querySelectorAll('.focus-item').forEach(item => {
+      result.active.push({ id: item.id, outerHTML: item.outerHTML });
+    });
+  }
+  if (doneList) {
+    doneList.querySelectorAll('.focus-item').forEach(item => {
+      result.done.push({ id: item.id, outerHTML: item.outerHTML });
+    });
+  }
+  return result;
 }
 
-function restoreJobItems(items) {
-  const list = document.querySelector('#tab-job .focus-items');
-  if (!list || !items.length) return;
-  
-  // 保留初始的4个示例任务，只添加用户新增的
-  const existingIds = Array.from(list.querySelectorAll('.focus-item')).map(el => el.id);
-  items.forEach(item => {
-    if (!existingIds.includes(item.id)) {
-      const el = document.createElement('div');
-      el.className = 'focus-item';
-      el.id = item.id;
-      el.innerHTML = item.html;
-      list.appendChild(el);
-    }
-  });
+function restoreJobItems(data) {
+  // 兼容旧数组格式
+  if (Array.isArray(data)) {
+    const list = document.querySelector('#tab-job .focus-items');
+    if (!list || !data.length) return;
+    const existingIds = Array.from(list.querySelectorAll('.focus-item')).map(el => el.id);
+    data.forEach(item => {
+      const el = document.getElementById(item.id);
+      if (!el) {
+        const newEl = document.createElement('div');
+        newEl.className = 'focus-item'; newEl.id = item.id; newEl.innerHTML = item.html || '';
+        list.appendChild(newEl);
+      } else if (item.checked) {
+        el.classList.add('done');
+        const check = el.querySelector('.focus-check');
+        if (check) { check.classList.add('checked'); check.textContent = '✓'; }
+      }
+    });
+    return;
+  }
+  if (!data || (!data.active && !data.done)) return;
+
+  const activeList = document.getElementById('jobList') || document.querySelector('#tab-job .focus-items');
+  const doneList = document.getElementById('jobDoneList');
+  const doneLabel = document.getElementById('jobDoneLabel');
+
+  // 用快照完整替换 active 列表
+  if (activeList && data.active && data.active.length > 0) {
+    activeList.innerHTML = '';
+    data.active.forEach(item => {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = item.outerHTML;
+      const el = wrapper.firstElementChild;
+      if (el) activeList.appendChild(el);
+    });
+  }
+  // 恢复 done 列表
+  if (doneList && data.done && data.done.length > 0) {
+    doneList.innerHTML = '';
+    data.done.forEach(item => {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = item.outerHTML;
+      const el = wrapper.firstElementChild;
+      if (el) doneList.appendChild(el);
+    });
+    if (doneLabel) doneLabel.style.display = 'flex';
+  }
 }
 
 function serializeShopItems() {
@@ -2109,10 +2277,7 @@ function serializeShopItems() {
   if (!list) return [];
   const items = [];
   list.querySelectorAll('.shop-item').forEach(item => {
-    const check = item.querySelector('.shop-check');
-    const text = item.textContent.trim().replace('✓', '').trim();
-    const isChecked = check?.classList.contains('checked') || false;
-    items.push({ id: item.id, text, checked: isChecked });
+    items.push({ id: item.id, outerHTML: item.outerHTML, checked: item.querySelector('.shop-check')?.classList.contains('checked') || false });
   });
   return items;
 }
@@ -2120,15 +2285,20 @@ function serializeShopItems() {
 function restoreShopItems(items) {
   const list = document.getElementById('shopList');
   if (!list || !items.length) return;
-  
-  // 保留初始的5个示例，只添加用户新增的
-  const existingIds = Array.from(list.querySelectorAll('.shop-item')).map(el => el.id);
+  // 用快照完整替换整个购物清单（包含所有状态）
+  list.innerHTML = '';
   items.forEach(item => {
-    if (!existingIds.includes(item.id)) {
+    if (item.outerHTML) {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = item.outerHTML;
+      const el = wrapper.firstElementChild;
+      if (el) list.appendChild(el);
+    } else {
+      // 兼容旧格式（只有 text + checked）
       const el = document.createElement('div');
       el.className = 'shop-item' + (item.checked ? ' done' : '');
       el.id = item.id;
-      el.innerHTML = `<div class="shop-check ${item.checked ? 'checked' : ''}" onclick="toggleShop(this,'${item.id}')">${item.checked ? '✓' : ''}</div>${item.text}`;
+      el.innerHTML = `<div class="shop-check ${item.checked ? 'checked' : ''}" onclick="toggleShop(this,'${item.id}')">${item.checked ? '✓' : ''}</div>${item.text || ''}`;
       list.appendChild(el);
     }
   });
@@ -2151,20 +2321,14 @@ function restoreJournalEntries(items) {
   const entries = document.getElementById('journalEntries');
   if (!entries || !items.length) return;
   
-  // 保留初始的3个示例，只添加用户新增的
-  const existingCount = entries.querySelectorAll('.journal-entry').length;
-  if (existingCount >= 3 && items.length <= 3) return;
-  
-  // 如果用户有新增，替换整个列表
-  if (items.length > 3) {
-    entries.innerHTML = '';
-    items.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'journal-entry';
-      el.innerHTML = item.html;
-      entries.appendChild(el);
-    });
-  }
+  // 用保存的数据完整替换（包含用户修改过的示例条目）
+  entries.innerHTML = '';
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'journal-entry';
+    el.innerHTML = item.html;
+    entries.appendChild(el);
+  });
 }
 
 function makeDateKey(y, m, d) {
@@ -2225,9 +2389,69 @@ function handleCalendarFile(e) {
     const text = ev.target.result;
     importIcsEvents(text);
     renderCalendar();
+    renderDaySchedule(selectedDateKey);
     showToast('✅ 已从日历导入事件（本页内有效）');
   };
   reader.readAsText(file);
+}
+
+// 剑桥课表 URL 一键同步
+const CAMBRIDGE_ICAL_URL = 'https://2025-26.timetable.cam.ac.uk/api/users/1000363/ae23e64e7dc045c1863a7d7547f4ed3f/calendar.ical';
+
+async function fetchWithProxyFallback(targetUrl) {
+  // 先尝试直接请求（如果服务器有 CORS 头就成功）
+  const attempts = [
+    () => fetch(targetUrl, { signal: AbortSignal.timeout(8000) }),
+    () => fetch(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(8000) }),
+    () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(8000) }),
+    () => fetch(`https://thingproxy.freeboard.io/fetch/${targetUrl}`, { signal: AbortSignal.timeout(8000) }),
+  ];
+  for (const attempt of attempts) {
+    try {
+      const res = await attempt();
+      if (res.ok) {
+        const text = await res.text();
+        if (text.includes('BEGIN:VCALENDAR')) return text;
+      }
+    } catch (e) { /* 继续下一个 */ }
+  }
+  throw new Error('CORS_BLOCKED');
+}
+
+async function syncCambridgeTimetable() {
+  const btn = document.getElementById('syncCalBtn');
+  if (btn) { btn.textContent = '⏳ 同步中...'; btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; }
+
+  try {
+    const text = await fetchWithProxyFallback(CAMBRIDGE_ICAL_URL);
+    for (const dk in dayTasks) {
+      dayTasks[dk] = dayTasks[dk].filter(t => t.type !== 'course');
+      if (dayTasks[dk].length === 0) delete dayTasks[dk];
+    }
+    importIcsEvents(text);
+    renderCalendar();
+    renderDaySchedule(selectedDateKey);
+    renderTodayFocus(selectedDateKey);
+    updateTopbar();
+    const total = Object.values(dayTasks).flat().filter(t => t.type === 'course').length;
+    showToast(`✅ 课表已同步！共导入 ${total} 节课`);
+  } catch (err) {
+    if (err.message === 'CORS_BLOCKED') {
+      // 引导用户手动下载并导入
+      showToast('⚠️ 自动同步受限，请点「导入 .ics 文件」手动导入');
+      // 自动打开下载链接
+      const a = document.createElement('a');
+      a.href = CAMBRIDGE_ICAL_URL;
+      a.download = 'cambridge-timetable.ics';
+      a.target = '_blank';
+      a.click();
+    } else {
+      showToast('❌ 同步失败，请检查网络后重试');
+    }
+    console.error('同步失败:', err);
+  } finally {
+    if (btn) { btn.textContent = '🔄 同步课表'; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+  }
 }
 
 function importIcsEvents(icsText) {
@@ -2260,14 +2484,18 @@ function importIcsEvents(icsText) {
     const dateKey = formatDateKeyFromDate(ev.start);
     if (!dayTasks[dateKey]) dayTasks[dateKey] = [];
     const timeStr = formatTimeRange(ev.start, ev.end);
+    const courseName = ev.summary || '日历事件';
     dayTasks[dateKey].push({
       time: timeStr,
-      name: ev.summary || '日历事件',
+      name: courseName,
       tag: ev.location ? `📍 ${ev.location}` : '',
       type: 'course'
     });
+    // 同步到课程列表
+    if (!courseList.includes(courseName)) courseList.push(courseName);
   });
-  saveToStorage(); // 保存日历导入数据
+  renderDueCourseSelect();
+  saveToStorage();
 }
 
 function parseIcsDate(str) {
@@ -2321,20 +2549,39 @@ function renderCalendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement('div');
     el.className = 'cal-day';
-    if (d === now.getDate() && month === now.getMonth() + 1 && year === now.getFullYear()) {
+    if (d === now.getDate() && month === now.getMonth() && year === now.getFullYear()) {
       el.classList.add('today');
     }
     const dateKey = makeDateKey(year, month + 1, d);
-    const hasTasks = !!dayTasks[dateKey] || !!(dayFocusTasks[dateKey] && dayFocusTasks[dateKey].length > 0);
-    if (dueDays.includes(d)) el.classList.add('has-due');
-    else if (hasTasks || eventDays.includes(d)) el.classList.add('has-event');
-    
-    // 如果这个日期是当前选中的日期，标记为选中
-    if (dateKey === selectedDateKey) {
-      el.classList.add('selected');
-    }
-    
+
+    // due：只看 dueTasks 里截止日 = 今天的（不含子任务导入的日历事件）
+    const hasDue = Object.values(dueTasks || {}).some(t => !t.archived && t.deadline === dateKey);
+
+    // 有日程：dayTasks（课程/任务）里有内容，排除纯 due 类型本身
+    const hasDayEvents = !!(dayTasks[dateKey] && dayTasks[dateKey].some(t => t.type !== 'due'));
+    const hasEvent = hasDayEvents;
+
+    if (dateKey === selectedDateKey) el.classList.add('selected');
+
     el.textContent = d;
+
+    // 渲染点点（可同时出现绿+红）
+    if (hasEvent || hasDue) {
+      const dots = document.createElement('div');
+      dots.className = 'cal-day-dots';
+      if (hasEvent) {
+        const g = document.createElement('div');
+        g.className = 'cal-dot cal-dot-green';
+        dots.appendChild(g);
+      }
+      if (hasDue) {
+        const r = document.createElement('div');
+        r.className = 'cal-dot cal-dot-red';
+        dots.appendChild(r);
+      }
+      el.appendChild(dots);
+    }
+
     el.onclick = () => selectDay(el, d);
     grid.appendChild(el);
   }
@@ -2410,6 +2657,11 @@ function addManualCourse() {
     tag: location ? '📍 ' + location : '课程',
     type: 'course'
   });
+  // 同步到课程列表（供 Due 时间线下拉框使用）
+  if (!courseList.includes(name)) {
+    courseList.push(name);
+    renderDueCourseSelect();
+  }
   startInput.value = '';
   endInput.value = '';
   nameInput.value = '';
@@ -2423,7 +2675,7 @@ function addManualCourse() {
 
 // 初始化今日的示例任务到 dayFocusTasks（如果还没有数据）
 function initDefaultTasks() {
-  const todayKey = '2025-02-19';
+  const todayKey = formatDateKeyFromDate(new Date());
   if (!dayFocusTasks[todayKey] || dayFocusTasks[todayKey].length === 0) {
     // 从DOM中读取初始的5个示例任务
     const fi1 = document.getElementById('fi1');
@@ -2443,18 +2695,24 @@ function initDefaultTasks() {
   }
 }
 
-// 页面加载时恢复数据
+// 页面加载时先恢复数据；无保存数据时仅保证今日聚焦为空数组，不注入任何演示数据
 const hasLoadedData = loadFromStorage();
 if (!hasLoadedData) {
-  // 如果没有保存的数据，初始化默认任务
   initDefaultTasks();
 } else {
   showToast('📦 已恢复保存的数据');
-  // 如果恢复的数据中没有今天的任务，初始化默认任务
-  const todayKey = '2025-02-19';
-  if (!dayFocusTasks[todayKey] || dayFocusTasks[todayKey].length === 0) {
+  const tk2 = formatDateKeyFromDate(new Date());
+  if (!dayFocusTasks[tk2] || dayFocusTasks[tk2].length === 0) {
     initDefaultTasks();
   }
+}
+
+// 若从本地文件(file://)打开，部分浏览器无法持久化 localStorage，提示用户
+if (typeof location !== 'undefined' && location.protocol === 'file:' && !sessionStorage.getItem('flowPlanner_fileTipShown')) {
+  sessionStorage.setItem('flowPlanner_fileTipShown', '1');
+  setTimeout(function() {
+    if (typeof showToast === 'function') showToast('提示：从本地文件打开时，刷新后数据可能无法保留。建议用本地服务器（如 Live Server）打开此页面以持久保存。');
+  }, 800);
 }
 
 // 初始化Due任务（无论是否有保存的数据，都需要渲染）
@@ -2466,35 +2724,28 @@ if (!dueTasks || Object.keys(dueTasks).length === 0) {
   renderDueCourseSelect();
 }
 
+selectedDateKey = formatDateKeyFromDate(new Date()); // Set now that helper is defined
 renderCalendar();
-// 默认显示今天的任务（使用恢复后的数据）
-const todayKey = '2025-02-19';
-selectedDateKey = todayKey;
+const todayKey = formatDateKeyFromDate(new Date());
 renderDaySchedule(todayKey);
-renderTodayFocus(todayKey); // 渲染今日聚焦
+renderTodayFocus(todayKey);
 const todayCell = document.querySelector('.cal-day.today');
 if (todayCell) todayCell.classList.add('selected');
 
 // Initialize PRD features
-updateTopbar();
+startTopbarTimer(); // Real-time topbar (updates every minute)
 checkDueWarnings();
 updateShopCount();
+initQAPickers();
+initJobDoneList(); // 已完成求职任务归档初始化
 
 // 初始化日期选择器的默认值为今天
-const dateInput = document.getElementById('quickAddDate');
-if (dateInput) {
-  const today = new Date(2025, 1, 19); // 2025-02-19
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  dateInput.value = todayStr;
-  dateInput.min = todayStr; // 不允许选择过去的日期
-}
-
-// 初始化Due截止日期选择器
+// Initialize due deadline min date
 const dueDeadlineInput = document.getElementById('dueDeadlineInput');
 if (dueDeadlineInput) {
-  const today = new Date(2025, 1, 19);
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  dueDeadlineInput.min = todayStr; // 不允许选择过去的日期
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  dueDeadlineInput.min = todayStr;
 }
 
 // === TABS ===
@@ -2533,64 +2784,218 @@ function goToTodayFocus() {
   showToast('已切换到今日聚焦');
 }
 
-// === CHECK ===
-function toggleCheck(el, id) {
+// === 统一勾选/归档逻辑（今日聚焦内所有任务通用）===
+function focusCheck(el, id) {
   el.classList.toggle('checked');
   const isChecked = el.classList.contains('checked');
-  
-  if (isChecked) {
-    el.textContent = '✓';
-  } else {
-    el.textContent = '';
-  }
-  
-  // 更新数据结构中的归档状态
-  if (id.startsWith('fi')) {
-    // 找到这个任务属于哪个日期
-    let found = false;
-    for (const dateKey in dayFocusTasks) {
-      const taskIndex = dayFocusTasks[dateKey].findIndex(t => t.id === id);
-      if (taskIndex !== -1) {
-        dayFocusTasks[dateKey][taskIndex].archived = isChecked;
-        found = true;
-        break;
-      }
-    }
-    
-    // 更新UI
-    const item = document.getElementById(id);
-    if (item) {
-      if (isChecked) {
-        item.classList.add('done');
-        // 今日聚焦任务完成后归档
-        const archiveList = document.getElementById('todayArchiveList');
-        const archiveLabel = document.getElementById('todayArchiveLabel');
-        const mainList = document.getElementById('todayFocusItems');
-        if (archiveList && archiveLabel && mainList && item.parentElement === mainList) {
-          archiveList.appendChild(item);
-          archiveLabel.style.display = 'block';
-        }
-      } else {
-        item.classList.remove('done');
-        // 从归档恢复到今日聚焦列表
-        const archiveList = document.getElementById('todayArchiveList');
-        const archiveLabel = document.getElementById('todayArchiveLabel');
-        const mainList = document.getElementById('todayFocusItems');
-        if (archiveList && archiveLabel && mainList && item.parentElement === archiveList) {
-          mainList.appendChild(item);
-          if (!archiveList.children.length) {
-            archiveLabel.style.display = 'none';
-          }
-        }
-      }
-    }
-    
+  el.textContent = isChecked ? '✓' : '';
+
+  const item = document.getElementById(id);
+  const archiveList = document.getElementById('todayArchiveList');
+  const archiveLabel = document.getElementById('todayArchiveLabel');
+  const mainList = document.getElementById('todayFocusItems');
+
+  if (item) {
     if (isChecked) {
+      item.classList.add('done');
+      // 移入归档区，附加删除按钮
+      if (archiveList && mainList) {
+        // 避免重复添加删除按钮
+        if (!item.querySelector('.item-delete-btn')) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'item-delete-btn';
+          delBtn.textContent = '✕';
+          delBtn.onclick = () => deleteArchivedFocusItem(id, selectedDateKey);
+          item.appendChild(delBtn);
+        }
+        archiveList.appendChild(item);
+        if (archiveLabel) archiveLabel.style.display = 'flex';
+      }
       showToast('✓ 任务完成！已归档');
+    } else {
+      item.classList.remove('done');
+      // 移回待办区，移除删除按钮
+      const delBtn = item.querySelector('.item-delete-btn');
+      if (delBtn) delBtn.remove();
+      if (mainList && archiveList) {
+        mainList.appendChild(item);
+        if (archiveList.children.length === 0 && archiveLabel) {
+          archiveLabel.style.display = 'none';
+        }
+      }
     }
   }
-  
-  saveToStorage(); // 保存任务状态变更
+
+  // 同步到 dayFocusTasks 数据（普通任务）
+  for (const dateKey in dayFocusTasks) {
+    const idx = dayFocusTasks[dateKey].findIndex(t => t.id === id);
+    if (idx !== -1) {
+      dayFocusTasks[dateKey][idx].archived = isChecked;
+      if (item) {
+        // 存 html 前先临时移除删除按钮，避免重复累积
+        const tmpBtn = item.querySelector('.item-delete-btn');
+        if (tmpBtn) tmpBtn.remove();
+        dayFocusTasks[dateKey][idx].html = item.innerHTML;
+        // 恢复删除按钮到 DOM
+        if (isChecked) {
+          const rebtn = document.createElement('span');
+          rebtn.className = 'item-delete-btn';
+          rebtn.textContent = '✕';
+          rebtn.onclick = () => deleteArchivedFocusItem(id, dateKey);
+          item.appendChild(rebtn);
+        }
+      }
+      break;
+    }
+  }
+
+  // 若是求职同步任务（今日聚焦）→ 同步找工作 tab 里原始条目
+  if (id.startsWith('jobsync_')) {
+    const origId = id.replace('jobsync_', '');
+    const origItem = document.getElementById(origId);
+    if (origItem) {
+      const chk = origItem.querySelector('.focus-check');
+      if (chk) { chk.classList.toggle('checked', isChecked); chk.textContent = isChecked ? '✓' : ''; }
+      const jobDoneList = document.getElementById('jobDoneList');
+      const jobDoneLabel = document.getElementById('jobDoneLabel');
+      const jobList = document.getElementById('jobList');
+      if (isChecked) {
+        origItem.classList.add('done');
+        // 移入已完成区
+        if (!origItem.querySelector('.item-delete-btn')) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'item-delete-btn';
+          delBtn.textContent = '✕';
+          delBtn.onclick = () => deleteJobItem(origId);
+          origItem.appendChild(delBtn);
+        }
+        if (jobDoneList) { jobDoneList.appendChild(origItem); if (jobDoneLabel) jobDoneLabel.style.display = 'flex'; }
+      } else {
+        origItem.classList.remove('done');
+        // 移回求职进度追踪列表
+        const delBtn = origItem.querySelector('.item-delete-btn');
+        if (delBtn) delBtn.remove();
+        if (jobList) jobList.appendChild(origItem);
+        if (jobDoneList && jobDoneList.children.length === 0 && jobDoneLabel) jobDoneLabel.style.display = 'none';
+      }
+    }
+  }
+
+  // 若是原始求职任务（找工作 tab）→ 移入/移出已完成区 + 同步今日聚焦 jobsync_
+  if (id.startsWith('jb') && !id.startsWith('jobsync_')) {
+    const jobDoneList = document.getElementById('jobDoneList');
+    const jobDoneLabel = document.getElementById('jobDoneLabel');
+    const jobList = document.getElementById('jobList');
+
+    if (item && jobDoneList && jobList) {
+      if (isChecked) {
+        // 加删除按钮，移入已完成区
+        if (!item.querySelector('.item-delete-btn')) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'item-delete-btn';
+          delBtn.textContent = '✕';
+          delBtn.onclick = () => deleteJobItem(id);
+          item.appendChild(delBtn);
+        }
+        jobDoneList.appendChild(item);
+        if (jobDoneLabel) jobDoneLabel.style.display = 'flex';
+      } else {
+        // 移回活跃列表，移除删除按钮
+        const delBtn = item.querySelector('.item-delete-btn');
+        if (delBtn) delBtn.remove();
+        jobList.appendChild(item);
+        if (jobDoneList.children.length === 0 && jobDoneLabel) jobDoneLabel.style.display = 'none';
+      }
+    }
+
+    // 同步今日聚焦里 jobsync_ 条目的状态
+    const syncId = 'jobsync_' + id;
+    for (const dk in dayFocusTasks) {
+      const idx = dayFocusTasks[dk].findIndex(t => t.id === syncId);
+      if (idx !== -1) { dayFocusTasks[dk][idx].archived = isChecked; break; }
+    }
+    const syncItem = document.getElementById(syncId);
+    if (syncItem) {
+      const syncCheck = syncItem.querySelector('.focus-check');
+      if (syncCheck) { syncCheck.classList.toggle('checked', isChecked); syncCheck.textContent = isChecked ? '✓' : ''; }
+      const archiveListEl = document.getElementById('todayArchiveList');
+      const archiveLabelEl = document.getElementById('todayArchiveLabel');
+      const mainListEl = document.getElementById('todayFocusItems');
+      if (isChecked) {
+        syncItem.classList.add('done');
+        if (!syncItem.querySelector('.item-delete-btn')) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'item-delete-btn';
+          delBtn.textContent = '✕';
+          delBtn.onclick = () => deleteArchivedFocusItem(syncId, selectedDateKey);
+          syncItem.appendChild(delBtn);
+        }
+        if (archiveListEl) { archiveListEl.appendChild(syncItem); if (archiveLabelEl) archiveLabelEl.style.display = 'flex'; }
+      } else {
+        syncItem.classList.remove('done');
+        const delBtn = syncItem.querySelector('.item-delete-btn');
+        if (delBtn) delBtn.remove();
+        if (mainListEl && archiveListEl && syncItem.parentElement === archiveListEl) {
+          mainListEl.appendChild(syncItem);
+          if (archiveListEl.children.length === 0 && archiveLabelEl) archiveLabelEl.style.display = 'none';
+        }
+      }
+    }
+  }
+
+  // 若是 due 同步任务 → 不做额外操作
+
+  saveToStorage();
+}
+
+// === CHECK（旧版兼容，统一走 focusCheck）===
+function toggleCheck(el, id) {
+  focusCheck(el, id);
+}
+
+// === SYNC JOB CHECK（旧版兼容）===
+function syncJobCheck(el, origId, syncId) {
+  focusCheck(el, syncId);
+}
+
+// === 归档区删除模式 ===
+function toggleArchiveDeleteMode(listId, btnId) {
+  const list = document.getElementById(listId);
+  const btn = document.getElementById(btnId);
+  if (!list || !btn) return;
+  const isOn = list.classList.toggle('delete-mode-on');
+  btn.classList.toggle('active', isOn);
+  btn.textContent = isOn ? '完成' : '✕';
+}
+
+// 删除今日聚焦已归档任务
+function deleteArchivedFocusItem(taskId, dateKey) {
+  // 从数据里删除
+  const dk = dateKey || selectedDateKey;
+  if (dayFocusTasks[dk]) {
+    dayFocusTasks[dk] = dayFocusTasks[dk].filter(t => t.id !== taskId);
+  }
+  // 从 DOM 删除
+  const item = document.getElementById(taskId);
+  if (item) item.remove();
+  // 如果归档区空了，隐藏标题
+  const archiveList = document.getElementById('todayArchiveList');
+  const archiveLabel = document.getElementById('todayArchiveLabel');
+  if (archiveList && archiveList.children.length === 0 && archiveLabel) {
+    archiveLabel.style.display = 'none';
+  }
+  saveToStorage();
+  showToast('已删除');
+}
+
+// 删除 Due 已归档任务
+function deleteArchivedDue(dueTaskId) {
+  delete dueTasks[dueTaskId];
+  const item = document.querySelector(`[data-due-id="${dueTaskId}"]`);
+  if (item) item.remove();
+  renderCalendar();
+  saveToStorage();
+  showToast('已删除');
 }
 
 // === STEPS ===
@@ -2687,8 +3092,17 @@ function updateDueProgress(dueTaskId) {
       const today = new Date();
       const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
       const weeksText = diffDays > 0 ? `剩 ${diffDays} 天` : diffDays === 0 ? '今天截止' : `已逾期 ${Math.abs(diffDays)} 天`;
-      const progressMode = task.customProgress !== undefined ? '自定义' : '自动';
-      progressText.textContent = `${weeksText} · 进度 ${progress}% (${progressMode})`;
+      progressText.textContent = `${weeksText} · 进度 ${progress}%`;
+    }
+    
+    // Auto-archive when 100%
+    if (progress >= 100) {
+      task.archived = true;
+      saveToStorage();
+      renderAllDueItems();
+      updateTopbar();
+      showToast('🎉 任务进度 100%！已自动归档到「已完成 due」');
+      return;
     }
     
     if (progressSlider) {
@@ -2950,7 +3364,7 @@ function createStepElement(step, dueTaskId) {
       <div class="step-name ${step.completed ? 'done' : ''}" style="${nameStyle}">${step.name}</div>
       <div class="step-meta">
         <span>📅 ${datetimeStr}</span>
-        ${step.date && step.time ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
+        ${step.date ? `<span class="step-action-btn" onclick="importStepToCalendar('${dueTaskId}', '${step.id}')" style="font-size: 9px;">导入日历</span>` : ''}
       </div>
     </div>
     <div class="step-actions">
@@ -2968,19 +3382,18 @@ function importStepToCalendar(dueTaskId, stepId) {
   
   const step = task.steps.find(s => s.id === stepId);
   if (!step || !step.date) {
-    showToast('请先设置子任务的日期和时间');
+    showToast('请先设置子任务的日期');
     return;
   }
   
-  // 将子任务添加到日历
+  // 将子任务添加到日历（保持为时间节点，不扩展为时间段）
   const dateKey = step.date; // YYYY-MM-DD格式
   if (!dayTasks[dateKey]) dayTasks[dateKey] = [];
   
-  const timeStr = step.time || '09:00';
-  const endTime = step.time ? addTime(step.time, 1) : '10:00'; // 默认1小时
+  const timeStr = step.time || '';
   
   dayTasks[dateKey].push({
-    time: `${timeStr} – ${endTime}`,
+    time: timeStr,
     name: `${task.title} · ${step.name}`,
     tag: `📚 ${task.course || 'Due任务'}`,
     type: 'task'
@@ -2992,7 +3405,12 @@ function importStepToCalendar(dueTaskId, stepId) {
   if (!dayFocusTasks[dateKey]) dayFocusTasks[dateKey] = [];
   dayFocusTasks[dateKey].push({ id: focusId, html: focusHtml, archived: false, dateKey: dateKey });
   saveToStorage();
+  // 切换日历选中到导入的日期，并刷新日程列表
+  selectedDateKey = dateKey;
+  const [iy, im, id_] = dateKey.split('-').map(Number);
+  currentDate = new Date(iy, im - 1, id_);
   renderCalendar();
+  renderDaySchedule(dateKey);
   renderTodayFocus(selectedDateKey);
   showToast('✓ 已导入到 ' + formatDateDisplay(dateKey) + ' 的日历与今日聚焦');
 }
@@ -3021,7 +3439,8 @@ function toggleShop(el, id) {
     el.textContent = '';
     item.classList.remove('done');
   }
-  saveToStorage(); // 保存购物清单状态
+  updateShopCount();
+  saveToStorage();
 }
 
 function shopAdd() {
@@ -3045,98 +3464,321 @@ function shopAddKeydown(e) {
   if (e.key === 'Enter') shopAdd();
 }
 
-// === QUICK ADD（类别：课程/求职/待办/其它）===
-function onQuickAddCategoryChange() {
-  var cat = document.getElementById('quickAddCategory');
-  var courseEl = document.getElementById('quickAddCourse');
-  var otherEl = document.getElementById('quickAddOther');
-  var otherInput = document.getElementById('quickAddOtherInput');
-  if (!cat) return;
-  courseEl.style.display = cat.value === '课程' ? 'inline-block' : 'none';
-  otherEl.style.display = cat.value === '其它' ? 'inline-block' : 'none';
-  otherInput.style.display = cat.value === '其它' ? 'inline-block' : 'none';
-  if (cat.value === '课程') renderQuickAddCourseOptions();
-  if (cat.value === '其它') renderQuickAddOtherOptions();
+// === QA PICKER SYSTEM ===
+
+// ── Picker open/close ──────────────────────────────────────
+function openPicker(id) {
+  // Close all first
+  ['qaDatePicker','qaTimePicker','qaCatPicker',
+   'dueCoursePickerDrop','dueDeadlineDrop','jobCatDrop'].forEach(pid => {
+    const p = document.getElementById(pid);
+    if (p && pid !== id) p.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
-function renderQuickAddCourseOptions() {
-  var sel = document.getElementById('quickAddCourse');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">选择课程</option>';
-  courseList.forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+function closePicker(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
 }
-function renderQuickAddOtherOptions() {
-  var sel = document.getElementById('quickAddOther');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">选择类别</option>';
-  customCategories.forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
-}
-function quickAdd() {
-  var input = document.getElementById('quickAddInput');
-  var dateInput = document.getElementById('quickAddDate');
-  var categorySelect = document.getElementById('quickAddCategory');
-  var courseSelect = document.getElementById('quickAddCourse');
-  var otherSelect = document.getElementById('quickAddOther');
-  var otherInput = document.getElementById('quickAddOtherInput');
-  var val = input && input.value.trim();
-  if (!val) return;
-  var category = (categorySelect && categorySelect.value) || '待办';
-  var tagClass = 'tag-life', tagText = '待办';
-  if (category === '课程') {
-    var course = (courseSelect && courseSelect.value) || '';
-    if (!course) { showToast('请选择具体课程'); return; }
-    tagClass = 'tag-course'; tagText = course;
-  } else if (category === '求职') { tagClass = 'tag-job'; tagText = '求职'; }
-  else if (category === '其它') {
-    var other = (otherSelect && otherSelect.value) || (otherInput && otherInput.value.trim());
-    if (!other) { showToast('请选择或输入其它类别名称'); return; }
-    if (otherInput && otherInput.value.trim() && customCategories.indexOf(otherInput.value.trim()) === -1) {
-      customCategories.push(otherInput.value.trim()); saveToStorage(); renderQuickAddOtherOptions();
+
+function toggleQAPicker(id) { openPicker(id); }
+function closeQAPicker(id) { closePicker(id); }
+
+// Close pickers when clicking outside
+document.addEventListener('click', function(e) {
+  ['qaDatePicker','qaTimePicker','qaCatPicker',
+   'dueCoursePickerDrop','dueDeadlineDrop','jobCatDrop','jobStatusDrop'].forEach(id => {
+    const picker = document.getElementById(id);
+    if (!picker || picker.style.display === 'none') return;
+    const wrapper = picker.closest('.qa-picker-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      picker.style.display = 'none';
     }
-    tagText = other;
+  });
+}, true);
+
+// ── Date picker ───────────────────────────────────────────
+function initQADateLabels() {
+  const now = new Date();
+  const fmt = d => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+  const weekend = new Date(now);
+  const dow = weekend.getDay();
+  weekend.setDate(weekend.getDate() + (dow === 0 ? 6 : 6 - dow));
+  const nextWeek = new Date(now);
+  nextWeek.setDate(nextWeek.getDate() + (7 - dow + 1));
+  const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  setTxt('qaDateOpt_today', fmt(now));
+  setTxt('qaDateOpt_tomorrow', fmt(tomorrow));
+  setTxt('qaDateOpt_weekend', fmt(weekend));
+  setTxt('qaDateOpt_nextweek', fmt(nextWeek));
+  // Also set min on custom date input
+  const custom = document.getElementById('qaDateCustom');
+  if (custom) custom.min = now.toISOString().split('T')[0];
+}
+
+function setQADate(preset) {
+  const now = new Date();
+  let target = new Date(now);
+  if (preset === 'tomorrow') target.setDate(target.getDate()+1);
+  else if (preset === 'weekend') {
+    const d = target.getDay(); target.setDate(target.getDate() + (d === 0 ? 6 : 6 - d));
+  } else if (preset === 'nextweek') {
+    const d = target.getDay(); target.setDate(target.getDate() + (7 - d + 1));
   }
-  var targetDateKey = selectedDateKey;
-  if (dateInput && dateInput.value) { var d = new Date(dateInput.value); targetDateKey = formatDateKeyFromDate(d); }
-  var id = 'fi' + Date.now();
-  var itemHtml = '<div class="focus-check" onclick="toggleCheck(this,\'' + id + '\')"></div><div class="focus-info"><div class="focus-title">' + val + '</div><div class="focus-meta"><span class="tag ' + tagClass + '">' + tagText + '</span></div></div><div class="focus-time">' + (targetDateKey === selectedDateKey ? '今日' : formatDateDisplay(targetDateKey)) + '</div>';
+  qaSelectedDate = formatDateKeyFromDate(target);
+  const lbl = document.getElementById('qaDateLabel');
+  if (lbl) lbl.textContent = (target.getMonth()+1) + '月' + target.getDate() + '日';
+  closePicker('qaDatePicker');
+}
+
+function setQADateCustom() {
+  const input = document.getElementById('qaDateCustom');
+  if (!input || !input.value) return;
+  const parts = input.value.split('-').map(Number);
+  qaSelectedDate = input.value;
+  const lbl = document.getElementById('qaDateLabel');
+  if (lbl) lbl.textContent = parts[1] + '月' + parts[2] + '日';
+  closePicker('qaDatePicker');
+}
+
+// ── Time picker ───────────────────────────────────────────
+function updateQATimeLabel() {
+  const s = document.getElementById('qaTimeStart');
+  const e = document.getElementById('qaTimeEnd');
+  qaSelectedTimeStart = s ? s.value : '';
+  qaSelectedTimeEnd = e ? e.value : '';
+  const lbl = document.getElementById('qaTimeLabel');
+  if (!lbl) return;
+  if (qaSelectedTimeStart && qaSelectedTimeEnd) lbl.textContent = qaSelectedTimeStart + '–' + qaSelectedTimeEnd;
+  else if (qaSelectedTimeStart) lbl.textContent = qaSelectedTimeStart;
+  else lbl.textContent = '添加时间';
+}
+
+function clearQATime() {
+  qaSelectedTimeStart = ''; qaSelectedTimeEnd = '';
+  const s = document.getElementById('qaTimeStart');
+  const e = document.getElementById('qaTimeEnd');
+  if (s) s.value = ''; if (e) e.value = '';
+  const lbl = document.getElementById('qaTimeLabel');
+  if (lbl) lbl.textContent = '添加时间';
+  closePicker('qaTimePicker');
+}
+
+// ── Category picker ───────────────────────────────────────
+function renderQACatList() {
+  const list = document.getElementById('qaCatList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  // 课程（可展开）
+  const courseCat = BUILTIN_CATS.find(c => c.value === '课程');
+  if (courseCat) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;';
+    row.onmouseover = () => row.style.background = 'var(--surface3)';
+    row.onmouseout = () => row.style.background = '';
+    const tag = document.createElement('span');
+    tag.className = 'tag ' + courseCat.cls; tag.textContent = courseCat.text; tag.style.pointerEvents = 'none';
+    const arrow = document.createElement('span');
+    arrow.style.cssText = 'margin-left:auto;font-size:10px;color:var(--text-muted);transition:transform 0.15s;';
+    arrow.textContent = qaCourseExpanded ? '▲' : '▼';
+    row.appendChild(tag);
+    row.appendChild(arrow);
+    row.onclick = () => { qaCourseExpanded = !qaCourseExpanded; renderQACatList(); };
+    list.appendChild(row);
+
+    // 展开时显示具体课程
+    if (qaCourseExpanded) {
+      if (courseList.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'font-size:11px;color:var(--text-muted);padding:4px 16px 4px;';
+        empty.textContent = '暂无课程，请先在日历添加课程';
+        list.appendChild(empty);
+      } else {
+        courseList.forEach(c => {
+          const cat = { value: 'course:' + c, text: c, cls: 'tag-course' };
+          const subRow = document.createElement('div');
+          const isSelected = qaSelectedCategory && qaSelectedCategory.value === cat.value;
+          subRow.style.cssText = `display:flex;align-items:center;gap:6px;padding:5px 8px 5px 20px;border-radius:6px;cursor:pointer;font-size:12px;${isSelected ? 'background:var(--accent-dim);' : ''}`;
+          subRow.onmouseover = () => { if (!isSelected) subRow.style.background = 'var(--surface3)'; };
+          subRow.onmouseout = () => { if (!isSelected) subRow.style.background = ''; };
+          const subTag = document.createElement('span');
+          subTag.className = 'tag tag-course'; subTag.textContent = c; subTag.style.pointerEvents = 'none';
+          subRow.appendChild(subTag);
+          subRow.onclick = () => selectQACat(cat);
+          list.appendChild(subRow);
+        });
+      }
+    }
+  }
+
+  // 求职、生活
+  BUILTIN_CATS.filter(c => c.value !== '课程').forEach(cat => {
+    buildCatRow(list, cat, false, () => selectQACat(cat));
+  });
+
+  // 自定义
+  if (customCategories.length > 0) {
+    const sep = document.createElement('div');
+    sep.style.cssText = 'font-size:10px;color:var(--text-muted);padding:4px 8px 2px;font-weight:600;letter-spacing:0.5px;';
+    sep.textContent = '— 自定义 —';
+    list.appendChild(sep);
+    customCategories.forEach(c => {
+      const cat = { value: 'custom:' + c, text: c, cls: 'tag-life' };
+      buildCatRow(list, cat, qaCatDeleteMode, () => selectQACat(cat), () => {
+        customCategories = customCategories.filter(x => x !== c);
+        saveToStorage(); renderQACatList();
+      });
+    });
+  }
+}
+
+function buildCatRow(container, cat, showDelete, onSelect, onDelete) {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;';
+  row.onmouseover = () => row.style.background = 'var(--surface3)';
+  row.onmouseout = () => row.style.background = (qaSelectedCategory && qaSelectedCategory.value === cat.value) ? 'var(--accent-dim)' : '';
+  if (qaSelectedCategory && qaSelectedCategory.value === cat.value) row.style.background = 'var(--accent-dim)';
+  const tag = document.createElement('span');
+  tag.className = 'tag ' + cat.cls; tag.textContent = cat.text; tag.style.pointerEvents = 'none';
+  row.appendChild(tag);
+  if (showDelete && onDelete) {
+    const x = document.createElement('span');
+    x.textContent = '×'; x.style.cssText = 'margin-left:auto;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;';
+    x.onclick = e => { e.stopPropagation(); onDelete(); };
+    row.appendChild(x);
+  } else {
+    row.onclick = onSelect;
+  }
+  container.appendChild(row);
+}
+
+function selectQACat(cat) {
+  qaSelectedCategory = cat;
+  const lbl = document.getElementById('qaCatLabel');
+  if (lbl) lbl.textContent = cat.text;
+  closePicker('qaCatPicker');
+  renderQACatList();
+}
+
+function showQACatAdd() {
+  const form = document.getElementById('qaCatAddForm');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleQACatDelete() {
+  qaCatDeleteMode = !qaCatDeleteMode;
+  renderQACatList();
+}
+
+function confirmQACatAdd() {
+  const input = document.getElementById('qaCatAddInput');
+  const name = input && input.value.trim();
+  if (!name) { showToast('请输入类别名'); return; }
+  if (!customCategories.includes(name) && !courseList.includes(name)
+      && !BUILTIN_CATS.find(b => b.value === name)) {
+    customCategories.push(name);
+    saveToStorage();
+    showToast('✓ 已添加类别「' + name + '」');
+  } else {
+    showToast('该类别已存在');
+  }
+  if (input) input.value = '';
+  const form = document.getElementById('qaCatAddForm');
+  if (form) form.style.display = 'none';
+  renderQACatList();
+}
+
+function removeQACat(value) {
+  customCategories = customCategories.filter(c => 'custom:' + c !== value && c !== value);
+  saveToStorage(); renderQACatList();
+}
+
+// ── Quick Add main function ────────────────────────────────
+function quickAdd() {
+  const input = document.getElementById('quickAddInput');
+  const noteInput = document.getElementById('quickAddNote');
+  const val = input && input.value.trim();
+  if (!val) { showToast('请输入任务名称'); return; }
+
+  const cat = qaSelectedCategory || { value: '生活', text: '生活', cls: 'tag-life' };
+  const note = (noteInput && noteInput.value.trim()) || '';
+  const targetDateKey = qaSelectedDate || selectedDateKey;
+  const timeStart = qaSelectedTimeStart;
+  const timeEnd = qaSelectedTimeEnd;
+
+  const id = 'fi' + Date.now();
+  const noteHtml = note ? `<span style="color:var(--text-muted);font-size:10px;margin-left:4px;">${note}</span>` : '';
+  const timeDisplay = timeStart ? (timeEnd ? timeStart + '–' + timeEnd : timeStart) : formatDateDisplay(targetDateKey);
+  const itemHtml = `<div class="focus-check" onclick="toggleCheck(this,'${id}')"></div><div class="focus-info"><div class="focus-title">${val}</div><div class="focus-meta"><span class="tag ${cat.cls}">${cat.text}</span>${noteHtml}</div></div><div class="focus-time">${timeDisplay}</div>`;
+
   if (!dayFocusTasks[targetDateKey]) dayFocusTasks[targetDateKey] = [];
-  dayFocusTasks[targetDateKey].push({ id: id, html: itemHtml, archived: false, dateKey: targetDateKey });
+  dayFocusTasks[targetDateKey].push({ id, html: itemHtml, archived: false, dateKey: targetDateKey, timeStart, timeEnd, note });
+
+  // Auto-sync to calendar schedule if time set
+  if (timeStart) {
+    if (!dayTasks[targetDateKey]) dayTasks[targetDateKey] = [];
+    const timeStr = timeEnd ? `${timeStart} – ${timeEnd}` : timeStart;
+    dayTasks[targetDateKey].push({ time: timeStr, name: val, tag: '🏷 ' + cat.text + (note ? ' · ' + note : ''), type: 'task' });
+  }
+
+  // 求职类别 → 同步到找工作板块
+  if (cat.value === '求职') {
+    const jobList = document.querySelector('#tab-job .focus-items');
+    if (jobList) {
+      const jid = 'jb_sync_' + id;
+      const jel = document.createElement('div');
+      jel.className = 'focus-item'; jel.id = jid;
+      jel.innerHTML = `<div class="focus-check" onclick="toggleCheck(this,'${jid}')"></div><div class="focus-info"><div class="focus-title">${val}</div><div class="focus-meta"><span class="tag tag-job">求职</span>${noteHtml}</div></div><div class="focus-time">${timeDisplay}</div>`;
+      jobList.appendChild(jel);
+    }
+  }
+
   if (targetDateKey === selectedDateKey) {
-    var list = document.getElementById('todayFocusItems');
+    const list = document.getElementById('todayFocusItems');
     if (list) {
-      var emptyState = list.querySelector('.empty-state');
-      if (emptyState) emptyState.remove();
-      var item = document.createElement('div');
+      const empty = list.querySelector('.empty-state');
+      if (empty) empty.remove();
+      const item = document.createElement('div');
       item.className = 'focus-item'; item.id = id; item.innerHTML = itemHtml;
       list.appendChild(item);
     }
+    if (timeStart) renderDaySchedule(selectedDateKey);
+  } else {
+    if (timeStart) renderDaySchedule(targetDateKey);
   }
+
+  // Reset
   if (input) input.value = '';
-  if (dateInput) dateInput.value = '';
-  if (otherInput) otherInput.value = '';
-  showToast('✓ 已添加到' + (targetDateKey === selectedDateKey ? '今日聚焦' : formatDateDisplay(targetDateKey)));
+  if (noteInput) noteInput.value = '';
+  qaSelectedDate = null; qaSelectedTimeStart = ''; qaSelectedTimeEnd = '';
+  qaSelectedCategory = null;
+  const dtl = document.getElementById('qaDateLabel'); if (dtl) dtl.textContent = '日期';
+  const ttl = document.getElementById('qaTimeLabel'); if (ttl) ttl.textContent = '添加时间';
+  const ctl = document.getElementById('qaCatLabel'); if (ctl) ctl.textContent = '类别';
+  const ts = document.getElementById('qaTimeStart'); if (ts) ts.value = '';
+  const te = document.getElementById('qaTimeEnd'); if (te) te.value = '';
+
+  renderCalendar();
+  updateTopbar();
+  showToast('✓ 已添加' + (timeStart ? '（已同步日程）' : ''));
   saveToStorage();
 }
 
-function formatDateDisplay(dateKey) {
-  const [y, m, d] = dateKey.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  const today = new Date();
-  const todayKey = formatDateKeyFromDate(today);
-  
-  if (dateKey === todayKey) return '今日';
-  
-  const diffDays = Math.floor((date - today) / (1000 * 60 * 60 * 24));
-  if (diffDays === 1) return '明天';
-  if (diffDays === -1) return '昨天';
-  if (diffDays > 1 && diffDays <= 7) return `${diffDays}天后`;
-  if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)}天前`;
-  
-  return `${m}月${d}日`;
+function quickAddKeydown(e) { if (e.key === 'Enter') quickAdd(); }
+
+// ── Init ─────────────────────────────────────────────────
+function initQAPickers() {
+  initQADateLabels();
+  renderQACatList();
+  renderJobCatList();
+  renderDueCoursePickerList();
 }
 
-function quickAddKeydown(e) {
-  if (e.key === 'Enter') quickAdd();
-}
 
 // === DUE COURSE（与今日聚焦「课程」类别同步）===
 function ensureCourseInList(course) {
@@ -3145,125 +3787,149 @@ function ensureCourseInList(course) {
   saveToStorage();
 }
 
-function renderDueCourseSelect() {
-  const sel = document.getElementById('dueCourseSelect');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">选择课程</option>';
-  courseList.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    sel.appendChild(opt);
-  });
-  if (courseList.includes(cur)) sel.value = cur;
-}
+// Legacy compat
+function renderDueCourseSelect() { renderDueCoursePickerList(); renderQACatList(); }
+function onDueCourseSelectChange() {}
+function dueCourseAddNew() {}
+function toggleCourseManagePanel() {}
+function renderCourseManageList() {}
 
-function onDueCourseSelectChange() {
-  const input = document.getElementById('dueCourseInput');
-  if (input) input.value = '';
-}
+// selectedDueCourse declared at top
 
-function dueCourseAddNew() {
-  const input = document.getElementById('dueCourseInput');
-  const name = input && input.value.trim();
-  if (!name) {
-    showToast('请先输入新课程名');
-    return;
-  }
-  if (courseList.includes(name)) {
-    showToast('该课程已存在');
-    return;
-  }
-  courseList.push(name);
-  input.value = '';
-  renderDueCourseSelect();
-  renderCourseManageList();
-  saveToStorage();
-  showToast('✓ 已添加课程「' + name + '」');
-}
-
-function toggleCourseManagePanel() {
-  const panel = document.getElementById('courseManagePanel');
-  if (!panel) return;
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  if (panel.style.display === 'block') renderCourseManageList();
-}
-
-function renderCourseManageList() {
-  const list = document.getElementById('courseManageList');
+function renderDueCoursePickerList() {
+  const list = document.getElementById('dueCoursePickerList');
   if (!list) return;
   list.innerHTML = '';
+  if (courseList.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:11px;color:var(--text-muted);padding:4px 8px;';
+    empty.textContent = '暂无课程，点击 ＋ 添加';
+    list.appendChild(empty);
+    return;
+  }
   courseList.forEach(c => {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:12px;';
-    const span = document.createElement('span');
-    span.textContent = c;
-    const btn = document.createElement('span');
-    btn.className = 'due-action-btn delete';
-    btn.textContent = '删除';
-    btn.onclick = function() { deleteCourseFromList(c); };
-    row.appendChild(span);
-    row.appendChild(btn);
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;';
+    row.onmouseover = () => row.style.background = 'var(--surface3)';
+    row.onmouseout = () => row.style.background = selectedDueCourse === c ? 'var(--accent-dim)' : '';
+    if (selectedDueCourse === c) row.style.background = 'var(--accent-dim)';
+    const tag = document.createElement('span');
+    tag.className = 'tag tag-course'; tag.textContent = c; tag.style.pointerEvents = 'none';
+    row.appendChild(tag);
+    if (dueCourseDeleteMode) {
+      const x = document.createElement('span');
+      x.textContent = '×'; x.style.cssText = 'margin-left:auto;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;';
+      x.onclick = e => { e.stopPropagation(); deleteCourseFromList(c); };
+      row.appendChild(x);
+    } else {
+      row.onclick = () => { selectedDueCourse = c; const lbl = document.getElementById('dueCourseSelectedLabel'); if (lbl) lbl.textContent = c; closePicker('dueCoursePickerDrop'); renderDueCoursePickerList(); renderQACatList(); };
+    }
     list.appendChild(row);
   });
-  if (courseList.length === 0) list.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">暂无课程，可通过 [+] 添加</div>';
+}
+
+function showDueCourseAdd() {
+  const form = document.getElementById('dueCourseAddForm');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleDueCourseDelete() {
+  dueCourseDeleteMode = !dueCourseDeleteMode;
+  renderDueCoursePickerList();
+}
+
+function confirmDueCourseAdd() {
+  const input = document.getElementById('dueCourseAddInput');
+  const name = input && input.value.trim();
+  if (!name) { showToast('请输入课程名'); return; }
+  if (!courseList.includes(name)) {
+    courseList.push(name);
+    saveToStorage();
+    showToast('✓ 已添加课程「' + name + '」');
+  } else {
+    showToast('该课程已存在');
+  }
+  if (input) input.value = '';
+  const form = document.getElementById('dueCourseAddForm');
+  if (form) form.style.display = 'none';
+  renderDueCoursePickerList();
+  renderQACatList();
 }
 
 function deleteCourseFromList(courseName) {
   courseList = courseList.filter(c => c !== courseName);
-  renderDueCourseSelect();
-  renderCourseManageList();
+  if (selectedDueCourse === courseName) {
+    selectedDueCourse = '';
+    const lbl = document.getElementById('dueCourseSelectedLabel');
+    if (lbl) lbl.textContent = '选择课程';
+  }
+  renderDueCoursePickerList();
+  renderQACatList();
   saveToStorage();
   showToast('已删除课程「' + courseName + '」');
+}
+
+function updateDueDeadlineLabel() {
+  const input = document.getElementById('dueDeadlineInput');
+  if (!input || !input.value) return;
+  const [y,m,d] = input.value.split('-').map(Number);
+  const timeInput = document.getElementById('dueDeadlineTime');
+  const timeVal = timeInput && timeInput.value ? ' ' + timeInput.value : '';
+  const lbl = document.getElementById('dueDeadlineLabel');
+  if (lbl) lbl.textContent = m + '月' + d + '日' + timeVal;
 }
 
 // === DUE ADD ===
 function addDueItem() {
   const titleInput = document.getElementById('dueTitleInput');
-  const courseSelect = document.getElementById('dueCourseSelect');
-  const courseInput = document.getElementById('dueCourseInput');
   const deadlineInput = document.getElementById('dueDeadlineInput');
+  const deadlineTimeInput = document.getElementById('dueDeadlineTime');
   
   const title = titleInput.value.trim();
-  const course = (courseSelect && courseSelect.value) || (courseInput && courseInput.value.trim());
+  const course = selectedDueCourse;
   const deadline = deadlineInput && deadlineInput.value;
+  const deadlineTime = deadlineTimeInput && deadlineTimeInput.value ? deadlineTimeInput.value : '';
   
-  if (!title) {
-    showToast('请输入任务标题');
-    return;
-  }
-  if (!course) {
-    showToast('请选择或输入课程名称');
-    return;
-  }
-  if (!deadline) {
-    showToast('请选择截止日期');
-    return;
-  }
+  if (!title) { showToast('请输入任务标题'); return; }
+  if (!course) { showToast('请选择课程'); return; }
+  if (!deadline) { showToast('请选择截止日期'); return; }
   
   ensureCourseInList(course);
   
-  const list = document.getElementById('dueList');
-  if (!list) return;
-  
   const dueTaskId = 'due' + Date.now();
   dueTasks[dueTaskId] = {
-    id: dueTaskId,
-    title: title,
-    course: course,
-    deadline: deadline,
-    steps: [],
-    customProgress: undefined,
-    archived: false
+    id: dueTaskId, title, course, deadline, deadlineTime,
+    steps: [], customProgress: undefined, archived: false
   };
+  
+  // Sync due deadline to calendar as a red-tagged event
+  if (!dayTasks[deadline]) dayTasks[deadline] = [];
+  const calTimeStr = deadlineTime ? `⚠ 截止 ${deadlineTime}` : '⚠ 截止 ' + formatDeadlineDisplay(deadline);
+  dayTasks[deadline].push({
+    time: calTimeStr,
+    name: title,
+    tag: `📚 ${course}`,
+    type: 'due'
+  });
   
   renderDueItem(dueTasks[dueTaskId]);
   titleInput.value = '';
-  if (courseSelect) courseSelect.value = '';
-  if (courseInput) courseInput.value = '';
+  selectedDueCourse = '';
+  const courseLabel = document.getElementById('dueCourseSelectedLabel');
+  if (courseLabel) courseLabel.textContent = '选择课程';
   if (deadlineInput) deadlineInput.value = '';
-  showToast('✓ 已添加到时间线');
+  if (deadlineTimeInput) deadlineTimeInput.value = '';
+  const deadlineLabel = document.getElementById('dueDeadlineLabel');
+  if (deadlineLabel) deadlineLabel.textContent = '截止日期';
+  // 自动切换日历选中到截止日，立即在日程中显示
+  selectedDateKey = deadline;
+  const [dy, dm, dd] = deadline.split('-').map(Number);
+  currentDate = new Date(dy, dm - 1, dd);
+  renderCalendar();
+  renderDaySchedule(deadline);
+  renderTodayFocus(deadline);
+  updateTopbar();
+  showToast('✓ 已添加到时间线（截止日同步到日历）');
   saveToStorage();
 }
 
@@ -3307,26 +3973,264 @@ function deleteDueItem(dueTaskId) {
   if (!confirm('确定要删除该 Due 任务吗？删除后无法恢复。')) return;
   delete dueTasks[dueTaskId];
   renderAllDueItems();
+  renderCalendar();
+  renderDaySchedule(selectedDateKey);
   saveToStorage();
   showToast('✓ 已删除');
 }
 
-function formatDeadlineDisplay(dateStr) {
+function formatDeadlineDisplay(dateStr, timeStr) {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
-  return `${m}月${d}日 · ${weekNames[date.getDay()]}`;
+  const base = `${m}月${d}日 · ${weekNames[date.getDay()]}`;
+  return timeStr ? `${base} ${timeStr}` : base;
 }
+
+// === JOB CAT MANAGEMENT ===
+// jobCategories + selectedJobCat declared at top
+
+function renderJobCatList() {
+  const list = document.getElementById('jobCatPickerList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (jobCategories.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:11px;color:var(--text-muted);padding:4px 8px;';
+    empty.textContent = '暂无类别，点击 ＋ 添加';
+    list.appendChild(empty);
+    return;
+  }
+  jobCategories.forEach(c => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;';
+    row.onmouseover = () => row.style.background = 'var(--surface3)';
+    row.onmouseout = () => row.style.background = selectedJobCat === c ? 'var(--accent-dim)' : '';
+    if (selectedJobCat === c) row.style.background = 'var(--accent-dim)';
+    const tag = document.createElement('span');
+    tag.className = 'tag tag-job'; tag.textContent = c; tag.style.pointerEvents = 'none';
+    row.appendChild(tag);
+    if (jobCatDeleteMode) {
+      const x = document.createElement('span');
+      x.textContent = '×'; x.style.cssText = 'margin-left:auto;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;';
+      x.onclick = e => { e.stopPropagation(); jobCategories = jobCategories.filter(x => x !== c); saveToStorage(); renderJobCatList(); };
+      row.appendChild(x);
+    } else {
+      row.onclick = () => {
+        selectedJobCat = c;
+        const lbl = document.getElementById('jobCatLabel'); if (lbl) lbl.textContent = c;
+        closePicker('jobCatDrop');
+        renderJobCatList();
+      };
+    }
+    list.appendChild(row);
+  });
+}
+
+function showJobCatAdd() {
+  const form = document.getElementById('jobCatAddForm');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleJobCatDelete() {
+  jobCatDeleteMode = !jobCatDeleteMode;
+  renderJobCatList();
+}
+
+function confirmJobCatAdd() {
+  const input = document.getElementById('jobCatAddInput');
+  const name = input && input.value.trim();
+  if (!name) { showToast('请输入类别名'); return; }
+  if (!jobCategories.includes(name)) {
+    jobCategories.push(name);
+    saveToStorage();
+    showToast('✓ 已添加类别「' + name + '」');
+  } else {
+    showToast('该类别已存在');
+  }
+  if (input) input.value = '';
+  const form = document.getElementById('jobCatAddForm');
+  if (form) form.style.display = 'none';
+  renderJobCatList();
+}
+
+// === JOB STATUS SYSTEM ===
+const JOB_STATUS_CONFIG = {
+  today:   { cls: 'job-status-today',   label: '今日必做', desc: '同步今日聚焦', syncToday: true  },
+  week:    { cls: 'job-status-week',    label: '本周内',   desc: '同步今日聚焦', syncToday: true  },
+  date:    { cls: 'job-status-date',    label: '指定日期', desc: '可打通 Due',   syncToday: false },
+  ongoing: { cls: 'job-status-ongoing', label: '持续进行', desc: '长期任务',     syncToday: false },
+  tbd:     { cls: 'job-status-tbd',     label: '待定',     desc: '还没想好',     syncToday: false },
+};
+
+// 新建任务时选的状态
+let selectedNewJobStatus = 'pending';
+let selectedNewJobDate = '';
+
+function selectNewJobStatus(type) {
+  selectedNewJobStatus = type;
+  const cfg = JOB_STATUS_CONFIG[type] || JOB_STATUS_CONFIG.tbd;
+  const lbl = document.getElementById('jobStatusLabel');
+  if (lbl) lbl.textContent = cfg.label;
+  const dateWrap = document.getElementById('jobStatusDateWrap');
+  if (dateWrap) dateWrap.style.display = type === 'date' ? 'block' : 'none';
+  if (type !== 'date') {
+    selectedNewJobDate = '';
+    closePicker('jobStatusDrop');
+  }
+}
+
+function confirmJobStatusDate() {
+  const input = document.getElementById('jobStatusDateInput');
+  if (!input || !input.value) return;
+  selectedNewJobDate = input.value;
+  const [y, m, d] = input.value.split('-').map(Number);
+  const lbl = document.getElementById('jobStatusLabel');
+  if (lbl) lbl.textContent = `${m}/${d} 前`;
+  // 不自动关闭，让用户还能勾选「加入 Due」
+}
+
+// 点击某条任务的状态标签，弹出选择器
+function openJobStatusPicker(e, jobId) {
+  e.stopPropagation();
+  document.querySelectorAll('.job-status-picker.open').forEach(p => {
+    if (p.id !== 'jsp_' + jobId) p.classList.remove('open');
+  });
+  const picker = document.getElementById('jsp_' + jobId);
+  if (!picker) return;
+  // 每次重新渲染（保证标签最新）
+  picker.innerHTML = Object.entries(JOB_STATUS_CONFIG).map(([type, cfg]) =>
+    `<div class="job-status-opt" onclick="applyJobStatus(event,'${jobId}','${type}')">
+       <span class="job-status ${cfg.cls}">${cfg.label}</span>
+       <span style="font-size:11px;color:var(--text-muted)">${cfg.desc}</span>
+     </div>`
+  ).join('') +
+  `<div id="jspdatewrap_${jobId}" style="display:none;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+     <input type="date" class="job-date-input visible" id="jspdate_${jobId}" oninput="applyJobStatusDate('${jobId}')" style="display:block;">
+     <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+       <input type="checkbox" id="jspsyncdue_${jobId}" style="accent-color:var(--accent);">
+       <label for="jspsyncdue_${jobId}" style="font-size:11px;color:var(--text-muted);cursor:pointer;">同时加入 Due 时间线</label>
+     </div>
+   </div>`;
+  picker.classList.toggle('open');
+}
+
+function applyJobStatus(e, jobId, type) {
+  e.stopPropagation();
+  const cfg = JOB_STATUS_CONFIG[type] || JOB_STATUS_CONFIG.tbd;
+  const item = document.getElementById(jobId);
+  if (!item) return;
+  const dateWrap = document.getElementById('jspdatewrap_' + jobId);
+  if (dateWrap) dateWrap.style.display = type === 'date' ? 'block' : 'none';
+  if (type === 'date') return; // 等日期选完再关
+  // 更新标签
+  const tag = item.querySelector('.job-status');
+  if (tag) { tag.className = 'job-status ' + cfg.cls; tag.textContent = cfg.label; }
+  // 同步今日聚焦
+  syncJobToFocus(jobId, cfg.syncToday, cfg.label, null);
+  const picker = document.getElementById('jsp_' + jobId);
+  if (picker) picker.classList.remove('open');
+  saveToStorage();
+}
+
+function applyJobStatusDate(jobId) {
+  const dateInput = document.getElementById('jspdate_' + jobId);
+  if (!dateInput || !dateInput.value) return;
+  const dateVal = dateInput.value;
+  const [y, m, d] = dateVal.split('-').map(Number);
+  const label = `${m}/${d} 前`;
+  const item = document.getElementById(jobId);
+  if (item) {
+    const tag = item.querySelector('.job-status');
+    if (tag) { tag.className = 'job-status job-status-date'; tag.textContent = label; }
+  }
+  syncJobToFocus(jobId, false, label, null);
+  // 打通 Due 时间线
+  const syncDue = document.getElementById('jspsyncdue_' + jobId);
+  if (syncDue && syncDue.checked) {
+    const title = item?.querySelector('.focus-title')?.textContent || '';
+    const course = item?.querySelector('.tag')?.textContent || '求职';
+    if (!Object.values(dueTasks).some(t => t.title === title)) {
+      const dueId = 'due' + Date.now();
+      dueTasks[dueId] = { id: dueId, title, course, deadline: dateVal, deadlineTime: '', steps: [], archived: false };
+      if (!dayTasks[dateVal]) dayTasks[dateVal] = [];
+      dayTasks[dateVal].push({ time: '⚠ 截止', name: title, tag: `💼 ${course}`, type: 'due' });
+      renderDueItem(dueTasks[dueId]);
+      renderCalendar();
+      showToast('✓ 已同步到 Due 时间线');
+    }
+  }
+  const picker = document.getElementById('jsp_' + jobId);
+  if (picker) picker.classList.remove('open');
+  saveToStorage();
+}
+
+// 根据状态决定是否同步到今日聚焦（存入 dayFocusTasks 持久化）
+function syncJobToFocus(jobId, shouldSync, statusLabel, dateKey) {
+  const todayKey = getTodayKey();
+  const targetKey = todayKey; // 求职任务始终同步到今天
+  const syncId = 'jobsync_' + jobId;
+  const item = document.getElementById(jobId);
+  if (!item) return;
+  const title = item.querySelector('.focus-title')?.textContent || '';
+  const catEl = item.querySelector('.tag');
+  const catHtml = catEl ? catEl.outerHTML : '';
+
+  if (!dayFocusTasks[targetKey]) dayFocusTasks[targetKey] = [];
+  // 先移除旧的同步条目（状态可能变了）
+  dayFocusTasks[targetKey] = dayFocusTasks[targetKey].filter(t => t.id !== syncId);
+  // 从今日聚焦 DOM 里也移除旧的
+  const oldEl = document.getElementById(syncId);
+  if (oldEl) oldEl.remove();
+
+  if (shouldSync) {
+    const itemHtml = `<div class="focus-check" onclick="focusCheck(this,'${syncId}')"></div><div class="focus-info"><div class="focus-title">${title}</div><div class="focus-meta">${catHtml}<span class="tag tag-job" style="opacity:0.7">求职</span></div></div><div class="focus-time">${statusLabel}</div>`;
+    // 存入数据
+    dayFocusTasks[targetKey].push({ id: syncId, html: itemHtml, archived: false, dateKey: targetKey });
+    // 如果当前就在今天，立即渲染到 DOM
+    if (selectedDateKey === targetKey) {
+      const focusMain = document.getElementById('todayFocusItems');
+      if (focusMain) {
+        const empty = focusMain.querySelector('.empty-state');
+        if (empty) empty.remove();
+        const newEl = document.createElement('div');
+        newEl.className = 'focus-item';
+        newEl.id = syncId;
+        newEl.innerHTML = itemHtml;
+        focusMain.appendChild(newEl);
+      }
+    }
+  }
+  saveToStorage();
+}
+
+// 关闭所有 job status picker（点击外部）
+document.addEventListener('click', function() {
+  document.querySelectorAll('.job-status-picker.open').forEach(p => p.classList.remove('open'));
+});
 
 // === JOB ADD ===
 function jobAdd() {
   const input = document.getElementById('jobInput');
-  const val = input.value.trim();
+  const noteInput = document.getElementById('jobNote');
+  const val = input && input.value.trim();
   if (!val) return;
-  const list = document.querySelector('#tab-job .focus-items');
+  const note = (noteInput && noteInput.value.trim()) || '';
+  const cat = selectedJobCat || '求职';
+  const statusType = selectedNewJobStatus || 'tbd';
+  const cfg = JOB_STATUS_CONFIG[statusType] || JOB_STATUS_CONFIG.tbd;
+  let statusLabel = cfg.label;
+  if (statusType === 'date' && selectedNewJobDate) {
+    const [y, m, d] = selectedNewJobDate.split('-').map(Number);
+    statusLabel = `${m}/${d} 前`;
+  }
+
+  const list = document.getElementById('jobList');
   if (!list) return;
   const id = 'jb' + Date.now();
+  const noteHtml = note ? `<span style="font-size:10px;color:var(--text-muted);margin-left:4px;">${note}</span>` : '';
+
   const item = document.createElement('div');
   item.className = 'focus-item';
   item.id = id;
@@ -3334,18 +4238,91 @@ function jobAdd() {
     <div class="focus-check" onclick="toggleCheck(this,'${id}')"></div>
     <div class="focus-info">
       <div class="focus-title">${val}</div>
-      <div class="focus-meta"><span class="tag tag-job">求职</span></div>
+      <div class="focus-meta"><span class="tag tag-job">${cat}</span>${noteHtml}</div>
     </div>
-    <div class="focus-time">自定义</div>
-  `;
+    <div class="focus-time" style="position:relative;">
+      <span class="job-status ${cfg.cls}" onclick="openJobStatusPicker(event,'${id}')">${statusLabel}</span>
+      <div class="job-status-picker" id="jsp_${id}"></div>
+    </div>`;
   list.appendChild(item);
-  input.value = '';
-  showToast('✓ 已添加到找工作');
-  saveToStorage(); // 保存找工作任务
+
+  // 今日 / 本周 → 立即同步到今日聚焦
+  syncJobToFocus(id, cfg.syncToday, statusLabel, null);
+
+  // 指定日期且勾选打通 Due
+  if (statusType === 'date' && selectedNewJobDate) {
+    const syncDueChk = document.getElementById('jobSyncDue');
+    if (syncDueChk && syncDueChk.checked) {
+      const dueId = 'due' + Date.now();
+      dueTasks[dueId] = { id: dueId, title: val, course: cat, deadline: selectedNewJobDate, deadlineTime: '', steps: [], archived: false };
+      if (!dayTasks[selectedNewJobDate]) dayTasks[selectedNewJobDate] = [];
+      dayTasks[selectedNewJobDate].push({ time: '⚠ 截止', name: val, tag: `💼 ${cat}`, type: 'due' });
+      renderDueItem(dueTasks[dueId]);
+      renderCalendar();
+    }
+  }
+
+  // 重置表单
+  if (input) input.value = '';
+  if (noteInput) noteInput.value = '';
+  selectedJobCat = null;
+  selectedNewJobStatus = 'tbd';
+  selectedNewJobDate = '';
+  const catLbl = document.getElementById('jobCatLabel'); if (catLbl) catLbl.textContent = '类别';
+  const statusLbl = document.getElementById('jobStatusLabel'); if (statusLbl) statusLbl.textContent = '状态';
+  const dateWrap = document.getElementById('jobStatusDateWrap');
+  if (dateWrap) dateWrap.style.display = 'none';
+  const dateInp = document.getElementById('jobStatusDateInput');
+  if (dateInp) dateInp.value = '';
+  const syncDueChk = document.getElementById('jobSyncDue');
+  if (syncDueChk) syncDueChk.checked = false;
+  closePicker('jobStatusDrop');
+
+  showToast('✓ 已添加' + (cfg.syncToday ? '，已同步今日聚焦' : ''));
+  saveToStorage();
 }
 
-function jobAddKeydown(e) {
-  if (e.key === 'Enter') jobAdd();
+function jobAddKeydown(e) { if (e.key === 'Enter') jobAdd(); }
+
+// 删除找工作任务（已完成区永久删除）
+function deleteJobItem(jobId) {
+  const item = document.getElementById(jobId);
+  if (item) item.remove();
+  // 同时从今日聚焦里移除同步条目
+  const syncId = 'jobsync_' + jobId;
+  for (const dk in dayFocusTasks) {
+    dayFocusTasks[dk] = dayFocusTasks[dk].filter(t => t.id !== syncId);
+  }
+  const syncEl = document.getElementById(syncId);
+  if (syncEl) syncEl.remove();
+  const jobDoneList = document.getElementById('jobDoneList');
+  const jobDoneLabel = document.getElementById('jobDoneLabel');
+  if (jobDoneList && jobDoneList.children.length === 0 && jobDoneLabel) jobDoneLabel.style.display = 'none';
+  saveToStorage();
+  showToast('已删除');
+}
+
+// 页面加载后把已勾选的求职任务归到已完成区
+function initJobDoneList() {
+  const jobList = document.getElementById('jobList');
+  const jobDoneList = document.getElementById('jobDoneList');
+  const jobDoneLabel = document.getElementById('jobDoneLabel');
+  if (!jobList || !jobDoneList) return;
+  Array.from(jobList.querySelectorAll('.focus-item')).forEach(item => {
+    const chk = item.querySelector('.focus-check');
+    if (chk && chk.classList.contains('checked')) {
+      item.classList.add('done');
+      if (!item.querySelector('.item-delete-btn')) {
+        const delBtn = document.createElement('span');
+        delBtn.className = 'item-delete-btn';
+        delBtn.textContent = '✕';
+        delBtn.onclick = () => deleteJobItem(item.id);
+        item.appendChild(delBtn);
+      }
+      jobDoneList.appendChild(item);
+      if (jobDoneLabel) jobDoneLabel.style.display = 'flex';
+    }
+  });
 }
 
 // === MOOD ===
@@ -3527,6 +4504,7 @@ function handleImportPlan(btn, card) {
   });
   saveToStorage();
   renderCalendar();
+  renderDaySchedule(selectedDateKey);
   btn.textContent = '✓ 已导入！切换到「Due时间线」查看';
   btn.style.background = 'var(--green)';
   btn.disabled = true;
@@ -3565,6 +4543,51 @@ function updateShopCount() {
   const pending = list.querySelectorAll('.shop-item:not(.done)').length;
   const label = document.querySelector('#tab-shop .section-label');
   if (label) label.textContent = `🛒 购物清单 · 待购 ${pending} 项`;
+
+  // 同步今日聚焦里的购物提醒任务（找所有包含"去超市"的 focus-item）
+  const shopFocusItems = document.querySelectorAll('.focus-item');
+  shopFocusItems.forEach(item => {
+    const titleEl = item.querySelector('.focus-title');
+    if (!titleEl || !titleEl.textContent.includes('去超市')) return;
+
+    // 更新标题里的数字
+    titleEl.textContent = titleEl.textContent.replace(/清单里有\d+项/, `清单里有${pending}项`);
+
+    const archiveList = document.getElementById('todayArchiveList');
+    const archiveLabel = document.getElementById('todayArchiveLabel');
+    const mainList = document.getElementById('todayFocusItems');
+
+    if (pending === 0) {
+      // 自动归档
+      if (item.parentElement !== archiveList) {
+        item.classList.add('done');
+        const checkEl = item.querySelector('.focus-check');
+        if (checkEl && !checkEl.classList.contains('checked')) {
+          checkEl.classList.add('checked');
+          checkEl.textContent = '✓';
+        }
+        if (!item.querySelector('.item-delete-btn')) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'item-delete-btn';
+          delBtn.textContent = '✕';
+          delBtn.onclick = () => deleteArchivedFocusItem(item.id, selectedDateKey);
+          item.appendChild(delBtn);
+        }
+        if (archiveList) { archiveList.appendChild(item); if (archiveLabel) archiveLabel.style.display = 'flex'; }
+      }
+    } else {
+      // 恢复到待办区
+      if (item.parentElement === archiveList) {
+        item.classList.remove('done');
+        const checkEl = item.querySelector('.focus-check');
+        if (checkEl) { checkEl.classList.remove('checked'); checkEl.textContent = ''; }
+        const delBtn = item.querySelector('.item-delete-btn');
+        if (delBtn) delBtn.remove();
+        if (mainList) mainList.appendChild(item);
+        if (archiveList && archiveList.children.length === 0 && archiveLabel) archiveLabel.style.display = 'none';
+      }
+    }
+  });
 }
 
 // === DUE WARNING CHECK (PRD: Due截止前3天主动提醒) ===
@@ -3595,7 +4618,22 @@ function checkDueWarnings() {
   }
 }
 
-// === UPDATE TOPBAR BADGES ===
+// === UPDATE TOPBAR BADGES (real-time aware) ===
+function parseTimeStr(timeStr) {
+  // Parse "HH:MM" or "HH:MM – HH:MM" → returns start hour as decimal (e.g. 9.5 = 09:30)
+  if (!timeStr) return null;
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return parseInt(m[1]) + parseInt(m[2]) / 60;
+}
+
+function parseEndTimeStr(timeStr) {
+  if (!timeStr) return null;
+  const m = timeStr.match(/[-–]\s*(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return parseInt(m[1]) + parseInt(m[2]) / 60;
+}
+
 function updateTopbar() {
   const now = new Date();
   const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
@@ -3605,25 +4643,77 @@ function updateTopbar() {
     const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
     dateEl.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+weekDays[now.getDay()]+' · Week '+weekNum;
   }
-  // 与 Due 时间线「紧急」分类一致：仅统计未归档且距截止 0～3 天的 Due
+
+  const nowDecimal = now.getHours() + now.getMinutes() / 60; // e.g. 10.5 = 10:30
+  const todayKey = getTodayKey();
+
+  // ── 节课：统计今天全部课程数量 ──
+  const todaySched = dayTasks[todayKey] || [];
+  const classCount = todaySched.filter(t => t.type === 'course').length;
+  const classBadge = document.getElementById('badgeClass');
+  if (classBadge) classBadge.textContent = classCount + '节课';
+
+  // ── Due临近：未归档且距截止 ≤3天（精确匹配 Due 时间线「紧急」分类）──
   let urgentDue = 0;
   for (const id in dueTasks) {
     const t = dueTasks[id];
     if (t.archived) continue;
     const deadline = new Date(t.deadline);
-    const diff = Math.ceil((deadline - new Date()) / (1000*60*60*24));
+    const diff = Math.ceil((deadline - now) / (1000*60*60*24));
     if (diff >= 0 && diff <= 3) urgentDue++;
   }
   const dueBadge = document.querySelector('.badge-due');
   if (dueBadge) dueBadge.textContent = urgentDue + '个Due临近';
-  const todayKey = getTodayKey();
-  const todaySched = dayTasks[todayKey] || [];
-  const classCount = todaySched.filter(t => t.type === 'course').length;
-  const classBadge = document.getElementById('badgeClass');
-  if (classBadge) classBadge.textContent = classCount + '节课';
-  const todayTasks = (dayFocusTasks[selectedDateKey] || []).filter(t => !t.archived);
+
+  // ── 待办：今天未完成的聚焦任务（含时间的只算还未开始/进行中的）──
+  const todayFocus = (dayFocusTasks[todayKey] || []).filter(t => !t.archived);
+  let pendingTasks = 0;
+  todayFocus.forEach(t => {
+    if (t.timeStart) {
+      // Has a time — only count if not yet finished
+      const startH = parseTimeStr(t.timeStart);
+      const endH = t.timeEnd ? parseTimeStr(t.timeEnd) : null;
+      const finishedTime = endH !== null ? endH : (startH !== null ? startH + 1 : null);
+      if (finishedTime === null || finishedTime > nowDecimal) pendingTasks++;
+    } else {
+      pendingTasks++; // No time = always pending today
+    }
+  });
   const taskBadge = document.querySelector('.badge-task');
-  if (taskBadge) taskBadge.textContent = todayTasks.length + '个待办';
+  if (taskBadge) taskBadge.textContent = pendingTasks + '个待办';
+}
+
+// ── Real-time topbar update every minute ──
+function startTopbarTimer() {
+  updateTopbar();
+  const now = new Date();
+  // Fire at next minute boundary
+  const msToNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+  setTimeout(() => {
+    updateTopbar();
+    setInterval(updateTopbar, 60000);
+  }, msToNextMinute);
+}
+
+// === SYNC JOB CHECK ===
+function syncJobCheck(el, origId, syncId) {
+  // Toggle the sync item
+  el.classList.toggle('checked');
+  const isChecked = el.classList.contains('checked');
+  el.textContent = isChecked ? '✓' : '';
+  const item = document.getElementById(syncId);
+  if (item) item.classList.toggle('done', isChecked);
+  // Also toggle the original job item
+  const origItem = document.getElementById(origId);
+  if (origItem) {
+    const origCheck = origItem.querySelector('.focus-check');
+    if (origCheck) {
+      origCheck.classList.toggle('checked', isChecked);
+      origCheck.textContent = isChecked ? '✓' : '';
+      origItem.classList.toggle('done', isChecked);
+    }
+  }
+  saveToStorage();
 }
 
 // === TOAST ===
