@@ -4,44 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flow — 学生日常规划系统</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0f14;
-    --surface: #16181f;
-    --surface2: #1e2029;
-    --surface3: #252733;
-    --border: #2a2d3a;
-    --text: #e8eaf0;
-    --text-muted: #6b7080;
-    --text-dim: #9298a8;
-    --accent: #7c6af7;
-    --accent-light: #a89cf8;
-    --accent-dim: rgba(124,106,247,0.15);
-    --green: #4ade80;
-    --green-dim: rgba(74,222,128,0.12);
-    --red: #f87171;
-    --red-dim: rgba(248,113,113,0.12);
-    --orange: #fb923c;
-    --orange-dim: rgba(251,146,60,0.12);
-    --yellow: #fbbf24;
-    --blue: #60a5fa;
-    --blue-dim: rgba(96,165,250,0.12);
-    --pink: #f472b6;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --surface2: #f5f2ee;
+    --surface3: #ede9e3;
+    --border: #e8e2d9;
+    --text: #3d3530;
+    --text-muted: #a89c8e;
+    --text-dim: #7a6e64;
+    --accent: #e8826a;
+    --accent-light: #f09c87;
+    --accent-dim: rgba(232,130,106,0.12);
+    --green: #6bbf8a;
+    --green-dim: rgba(107,191,138,0.14);
+    --red: #e87a7a;
+    --red-dim: rgba(232,122,122,0.13);
+    --orange: #f0a868;
+    --orange-dim: rgba(240,168,104,0.14);
+    --yellow: #f5c842;
+    --blue: #7ab8e0;
+    --blue-dim: rgba(122,184,224,0.14);
+    --pink: #e8a0c0;
+    --mint: #88d4c0;
+    --lavender: #b4a8e0;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 12px rgba(100,80,60,0.08);
+    --shadow-md: 0 4px 20px rgba(100,80,60,0.12);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', 'Nunito', sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    background-image: radial-gradient(circle at 20% 20%, rgba(232,130,106,0.04) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(122,184,224,0.05) 0%, transparent 50%);
   }
 
   /* TOP BAR */
@@ -49,21 +55,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 24px;
+    padding: 12px 24px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex-shrink: 0;
     gap: 16px;
+    box-shadow: 0 1px 8px rgba(100,80,60,0.05);
   }
 
   .logo {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-light), var(--pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
   }
 
   .today-info {
@@ -85,17 +90,17 @@
 
   .badge {
     font-size: 11px;
-    padding: 3px 10px;
+    padding: 4px 11px;
     border-radius: 20px;
-    font-weight: 500;
-    letter-spacing: 0.3px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: all 0.2s;
   }
-  .badge:hover { opacity: 0.9; }
-  .badge-class { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
-  .badge-due { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
-  .badge-task { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+  .badge:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .badge-class { background: #e8f4fc; color: #5a9cc5; border: 1.5px solid #c5dff0; }
+  .badge-due { background: #fce8e8; color: #c07070; border: 1.5px solid #f0c5c5; }
+  .badge-task { background: #e8f7ee; color: #5a9e72; border: 1.5px solid #c5e8d2; }
 
   .topbar-right {
     display: flex;
@@ -103,9 +108,26 @@
     gap: 12px;
   }
 
+  .topbar-reset-btn {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .topbar-reset-btn:hover {
+    color: var(--red);
+    border-color: #f0c5c5;
+    background: #fce8e8;
+  }
+
   .mood-quick {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
     font-size: 11px;
     color: var(--text-muted);
@@ -113,15 +135,15 @@
 
   .mood-btn {
     background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
     padding: 4px 8px;
     cursor: pointer;
-    font-size: 14px;
-    transition: all 0.15s;
+    font-size: 15px;
+    transition: all 0.2s;
   }
-  .mood-btn:hover { background: var(--surface3); transform: scale(1.1); }
-  .mood-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+  .mood-btn:hover { background: var(--surface3); transform: scale(1.15); }
+  .mood-btn.active { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 2px 8px rgba(232,130,106,0.2); }
 
   .avatar {
     width: 32px; height: 32px;
@@ -131,9 +153,10 @@
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: white;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(232,130,106,0.3);
   }
 
   /* MAIN LAYOUT */
@@ -151,6 +174,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--surface);
   }
   .panel:last-child { border-right: none; }
 
@@ -161,37 +185,40 @@
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    background: var(--surface);
   }
 
   .panel-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
   }
 
   .panel-action {
     font-size: 11px;
-    color: var(--accent-light);
+    color: var(--accent);
     cursor: pointer;
-    padding: 3px 8px;
+    padding: 4px 10px;
     background: var(--accent-dim);
-    border-radius: 6px;
-    border: 1px solid rgba(124,106,247,0.2);
-    transition: all 0.15s;
+    border-radius: 20px;
+    border: 1.5px solid rgba(232,130,106,0.25);
+    transition: all 0.2s;
+    font-weight: 600;
   }
-  .panel-action:hover { background: rgba(124,106,247,0.25); }
+  .panel-action:hover { background: rgba(232,130,106,0.2); transform: translateY(-1px); }
 
   .panel-body {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
+    background: var(--bg);
   }
   .panel-body::-webkit-scrollbar { width: 4px; }
   .panel-body::-webkit-scrollbar-track { background: transparent; }
-  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   /* ===== LEFT: CALENDAR ===== */
   .cal-nav {
@@ -202,22 +229,23 @@
   }
 
   .cal-nav-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    width: 26px; height: 26px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     color: var(--text-dim);
-    font-size: 13px;
-    transition: all 0.15s;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
   }
-  .cal-nav-btn:hover { background: var(--surface3); color: var(--text); }
+  .cal-nav-btn:hover { background: var(--surface3); color: var(--accent); border-color: var(--accent-light); }
 
   .cal-month {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text);
   }
 
@@ -231,7 +259,7 @@
     text-align: center;
     font-size: 10px;
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 700;
     padding: 4px 0;
     letter-spacing: 0.5px;
   }
@@ -241,20 +269,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 12px;
     cursor: pointer;
     color: var(--text-dim);
-    transition: all 0.15s;
+    transition: all 0.2s;
     position: relative;
     flex-direction: column;
     gap: 2px;
+    font-weight: 500;
   }
   .cal-day:hover { background: var(--surface3); color: var(--text); }
   .cal-day.today {
     background: var(--accent);
     color: white;
-    font-weight: 700;
+    font-weight: 800;
+    box-shadow: 0 2px 10px rgba(232,130,106,0.35);
   }
   .cal-day-dots {
     position: absolute;
@@ -273,10 +303,9 @@
   .cal-dot-green { background: var(--green); }
   .cal-dot-red   { background: var(--red); }
   .cal-day.today .cal-dot-green { background: rgba(255,255,255,0.8); }
-  .cal-day.today .cal-dot-red   { background: rgba(255,180,180,0.95); }
+  .cal-day.today .cal-dot-red   { background: rgba(255,220,220,0.95); }
   .cal-day.other-month { opacity: 0.3; }
-  .cal-day.selected { background: var(--accent-dim); color: var(--accent-light); border: 1px solid rgba(124,106,247,0.3); }
-
+  .cal-day.selected { background: var(--accent-dim); color: var(--accent); border: 1.5px solid rgba(232,130,106,0.3); }
   .cal-divider {
     height: 1px;
     background: var(--border);
@@ -292,21 +321,22 @@
   .sched-label {
     font-size: 11px;
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
     margin-bottom: 8px;
   }
 
   .sched-item {
-    background: var(--surface2);
+    background: var(--surface);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
     border-left: 3px solid var(--blue);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
   }
-  .sched-item:hover { background: var(--surface3); }
+  .sched-item:hover { transform: translateX(2px); box-shadow: var(--shadow-md); }
   .sched-item.course { border-color: var(--blue); }
   .sched-item.due { border-color: var(--red); }
   .sched-item.task { border-color: var(--green); }
@@ -316,13 +346,13 @@
     font-size: 10px;
     color: var(--text-muted);
     margin-bottom: 3px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .sched-name {
     font-size: 12px;
     color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .sched-tag {
@@ -339,18 +369,19 @@
   }
   .add-course-form .add-input,
   .add-course-form input[type="time"] {
-    background: var(--surface2);
-    border: 1px solid var(--border);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 8px 12px;
     font-size: 12px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
     width: 100%;
+    transition: border-color 0.2s;
   }
   .add-course-form .add-input:focus,
-  .add-course-form input[type="time"]:focus { border-color: var(--accent); }
+  .add-course-form input[type="time"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .add-course-form .row {
     display: flex;
     gap: 8px;
@@ -363,35 +394,37 @@
   /* ===== MIDDLE: TASK CENTER ===== */
   .task-tabs {
     display: flex;
-    gap: 2px;
+    gap: 4px;
     padding: 12px 16px 0;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    background: var(--surface);
   }
 
   .task-tab {
     padding: 8px 14px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--text-muted);
     cursor: pointer;
-    border-radius: 8px 8px 0 0;
-    transition: all 0.15s;
+    border-radius: 10px 10px 0 0;
+    transition: all 0.2s;
     border-bottom: 2px solid transparent;
+    font-family: 'Noto Sans SC', sans-serif;
   }
-  .task-tab:hover { color: var(--text); }
+  .task-tab:hover { color: var(--text); background: var(--surface2); }
   .task-tab.active {
-    color: var(--accent-light);
+    color: var(--accent);
     border-bottom-color: var(--accent);
     background: var(--accent-dim);
   }
 
   .section-label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 1px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -401,8 +434,9 @@
   .section-label::after {
     content: '';
     flex: 1;
-    height: 1px;
+    height: 1.5px;
     background: var(--border);
+    border-radius: 2px;
   }
 
   /* 区块右侧删除模式切换按钮（放在 ::after 伪元素前，自然贴右）*/
@@ -447,15 +481,16 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: var(--surface2);
+    background: var(--surface);
     border-radius: var(--radius);
     padding: 12px 14px;
     cursor: pointer;
     transition: all 0.2s;
-    border: 1px solid transparent;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
   }
-  .focus-item:hover { border-color: var(--border); background: var(--surface3); }
-  .focus-item.done { opacity: 0.5; filter: brightness(0.7); }
+  .focus-item:hover { border-color: var(--accent-light); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .focus-item.done { opacity: 0.5; }
   .focus-item.done .focus-title { text-decoration: line-through; }
   
   .qa-date-opt:hover, .qa-picker-row:hover { background: var(--surface3) !important; }
@@ -465,20 +500,20 @@
   /* Picker dropdown row base */
   .picker-row {
     display: flex; align-items: center; gap: 6px;
-    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    padding: 6px 8px; border-radius: 8px; cursor: pointer;
     font-size: 12px; transition: background 0.1s;
   }
   .picker-row:hover { background: var(--surface3); }
 
   .focus-check {
-    width: 18px; height: 18px;
+    width: 20px; height: 20px;
     border-radius: 50%;
     border: 2px solid var(--border);
     flex-shrink: 0;
     margin-top: 1px;
     transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px;
+    font-size: 11px;
     cursor: pointer;
   }
   .focus-check.checked {
@@ -488,19 +523,19 @@
   }
 
   .focus-info { flex: 1; }
-  .focus-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .focus-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
   .focus-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
 
   .tag {
     font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
   }
-  .tag-course { background: var(--blue-dim); color: var(--blue); }
-  .tag-job { background: var(--orange-dim); color: var(--orange); }
-  .tag-life { background: var(--green-dim); color: var(--green); }
-  .tag-urgent { background: var(--red-dim); color: var(--red); }
+  .tag-course { background: #e8f4fc; color: #5a9cc5; }
+  .tag-job { background: #fef3e8; color: #c07030; }
+  .tag-life { background: #e8f7ee; color: #5a9e72; }
+  .tag-urgent { background: #fce8e8; color: #c07070; }
 
   /* 求职状态标签 */
   .job-status {
@@ -513,11 +548,11 @@
     transition: opacity 0.15s;
   }
   .job-status:hover { opacity: 0.8; }
-  .job-status-today   { background: rgba(248,113,113,0.15); color: var(--red);    border: 1px solid rgba(248,113,113,0.3); }
-  .job-status-week    { background: rgba(251,146,60,0.15);  color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
-  .job-status-date    { background: rgba(96,165,250,0.15);  color: var(--blue);   border: 1px solid rgba(96,165,250,0.3); }
-  .job-status-ongoing { background: rgba(74,222,128,0.12);  color: var(--green);  border: 1px solid rgba(74,222,128,0.25); }
-  .job-status-tbd     { background: var(--surface3);        color: var(--text-muted); border: 1px solid var(--border); }
+  .job-status-today   { background: #fce8e8; color: #c07070;    border: 1.5px solid #f0c5c5; }
+  .job-status-week    { background: #fef3e8;  color: #c07030; border: 1.5px solid #f0d5b0; }
+  .job-status-date    { background: #e8f4fc;  color: #5a9cc5;   border: 1.5px solid #c5dff0; }
+  .job-status-ongoing { background: #e8f7ee;  color: #5a9e72;  border: 1.5px solid #c5e8d2; }
+  .job-status-tbd     { background: var(--surface3);        color: var(--text-muted); border: 1.5px solid var(--border); }
 
   /* 求职状态选择器 */
   .job-status-picker {
@@ -531,7 +566,7 @@
     border-radius: var(--radius);
     padding: 10px;
     min-width: 180px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(100,80,60,0.15);
   }
   .job-status-picker.open { display: block; }
   .job-status-option {
@@ -560,11 +595,11 @@
     white-space: nowrap;
     cursor: default;
   }
-  .job-status-today   { background: var(--red-dim);    color: var(--red);          border: 1px solid rgba(248,113,113,0.25); }
-  .job-status-week    { background: var(--orange-dim);  color: var(--orange);       border: 1px solid rgba(251,146,60,0.25); }
-  .job-status-date    { background: var(--blue-dim);    color: var(--blue);         border: 1px solid rgba(96,165,250,0.25); }
-  .job-status-ongoing { background: var(--green-dim);   color: var(--green);        border: 1px solid rgba(74,222,128,0.25); }
-  .job-status-pending { background: var(--surface3);    color: var(--text-muted);   border: 1px solid var(--border); }
+  .job-status-today   { background: #fce8e8;    color: #c07070;          border: 1.5px solid #f0c5c5; }
+  .job-status-week    { background: #fef3e8;  color: #c07030;       border: 1.5px solid #f0d5b0; }
+  .job-status-date    { background: #e8f4fc;    color: #5a9cc5;         border: 1.5px solid #c5dff0; }
+  .job-status-ongoing { background: #e8f7ee;   color: #5a9e72;        border: 1.5px solid #c5e8d2; }
+  .job-status-pending { background: var(--surface2);    color: var(--text-muted);   border: 1.5px solid var(--border); }
 
   /* 状态选择器下拉 */
   .job-status-picker {
@@ -577,7 +612,7 @@
     border-radius: var(--radius);
     padding: 8px;
     min-width: 160px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(100,80,60,0.15);
     display: none;
   }
   .job-status-picker.open { display: block; }
@@ -601,7 +636,7 @@
     border-radius: 6px;
     font-size: 11px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
     display: none;
   }
@@ -616,29 +651,32 @@
 
   /* Due Timeline */
   .due-item {
-    background: var(--surface2);
+    background: var(--surface);
     border-radius: var(--radius);
     padding: 12px 14px;
     margin-bottom: 8px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
   }
-  .due-item:hover { background: var(--surface3); }
+  .due-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); border-color: var(--accent-light); }
   .due-item-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .due-action-btn {
     font-size: 11px;
     padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.15s;
-    border: 1px solid var(--border);
-    background: var(--surface3);
-    color: var(--text-dim);
-  }
-  .due-action-btn:hover { border-color: var(--accent); color: var(--accent-light); }
-  .due-action-btn.delete:hover { border-color: var(--red); color: var(--red); }
-  .due-item-archived {
+    transition: all 0.2s;
+    border: 1.5px solid var(--border);
     background: var(--surface2);
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .due-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .due-action-btn.delete:hover { border-color: var(--red); color: var(--red); background: #fce8e8; }
+  .due-item-archived {
+    background: var(--surface);
     border-radius: var(--radius);
     padding: 10px 12px;
     margin-bottom: 6px;
@@ -646,8 +684,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    opacity: 0.85;
+    opacity: 0.75;
     border-left: 3px solid var(--green);
+    border: 1.5px solid var(--border);
+    border-left-width: 3px;
+    box-shadow: var(--shadow);
   }
   .due-item-archived .due-archived-title { font-size: 12px; font-weight: 500; color: var(--text-dim); }
   .due-item-archived .due-archived-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
@@ -854,61 +895,46 @@
     color: var(--accent-light);
   }
   .step-add-form {
-    padding: 8px;
-    background: var(--surface3);
-    border-radius: 6px;
+    padding: 10px;
+    background: var(--surface2);
+    border-radius: 10px;
     margin-top: 8px;
     display: none;
+    border: 1.5px solid var(--border);
   }
   .step-add-form.open { display: block; }
-  .step-form-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .step-form-row:last-child { margin-bottom: 0; }
   .step-form-input {
     flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
     padding: 6px 10px;
     font-size: 11px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
+    transition: all 0.2s;
   }
-  .step-form-input:focus { border-color: var(--accent); }
-  .step-form-date {
-    flex: 0 0 auto;
-    width: 140px;
-  }
-  .step-form-time {
-    flex: 0 0 auto;
-    width: 100px;
-  }
-  .step-form-btns {
-    display: flex;
-    gap: 6px;
-    justify-content: flex-end;
-  }
+  .step-form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
   .step-form-btn {
-    padding: 4px 12px;
+    padding: 4px 14px;
     font-size: 11px;
-    border-radius: 4px;
+    border-radius: 20px;
     border: none;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    font-weight: 700;
   }
   .step-form-btn-save {
     background: var(--accent);
     color: white;
+    box-shadow: 0 2px 6px rgba(232,130,106,0.3);
   }
   .step-form-btn-save:hover { opacity: 0.9; }
   .step-form-btn-cancel {
-    background: var(--surface2);
+    background: var(--surface);
     color: var(--text-dim);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
   }
   .step-form-btn-cancel:hover { background: var(--surface3); }
 
@@ -924,19 +950,21 @@
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    background: var(--surface2);
+    background: var(--surface);
     border-radius: var(--radius-sm);
     font-size: 12px;
     color: var(--text-dim);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
   }
 
   .shop-check {
     width: 16px; height: 16px;
-    border-radius: 4px;
+    border-radius: 6px;
     border: 1.5px solid var(--border);
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.15s;
+    transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
     font-size: 9px;
   }
@@ -952,29 +980,29 @@
 
   .add-input {
     flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 8px 12px;
     font-size: 12px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
-    transition: border-color 0.15s;
+    transition: all 0.2s;
   }
-  .add-input:focus { border-color: var(--accent); }
+  .add-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .add-input::placeholder { color: var(--text-muted); }
   
   input[type="date"], select {
     cursor: pointer;
   }
   input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.6);
+    filter: opacity(0.4);
     cursor: pointer;
   }
   select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239299a8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a89c8e' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 30px;
@@ -982,16 +1010,17 @@
 
   .add-btn {
     background: var(--accent-dim);
-    border: 1px solid rgba(124,106,247,0.3);
+    border: 1.5px solid rgba(232,130,106,0.3);
     border-radius: var(--radius-sm);
     padding: 8px 14px;
     font-size: 12px;
-    color: var(--accent-light);
+    color: var(--accent);
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
+    font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.2s;
+    font-weight: 700;
   }
-  .add-btn:hover { background: rgba(124,106,247,0.25); }
+  .add-btn:hover { background: rgba(232,130,106,0.2); transform: translateY(-1px); }
 
   /* ===== RIGHT: AI ASSISTANT ===== */
   .ai-panel {
@@ -1008,20 +1037,22 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    background: var(--surface);
   }
 
   .ai-avatar {
-    width: 28px; height: 28px;
+    width: 30px; height: 30px;
     background: linear-gradient(135deg, var(--accent), var(--pink));
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(232,130,106,0.3);
   }
 
   .ai-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
     color: var(--text);
   }
 
@@ -1032,6 +1063,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    font-weight: 600;
   }
   .ai-status::before {
     content: '';
@@ -1054,9 +1086,10 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    background: var(--bg);
   }
   .ai-messages::-webkit-scrollbar { width: 3px; }
-  .ai-messages::-webkit-scrollbar-thumb { background: var(--border); }
+  .ai-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   .msg {
     max-width: 85%;
@@ -1073,21 +1106,24 @@
 
   .msg-bubble {
     padding: 10px 14px;
-    border-radius: 14px;
+    border-radius: 16px;
     font-size: 12.5px;
     line-height: 1.6;
   }
 
   .msg-ai .msg-bubble {
-    background: var(--surface2);
+    background: var(--surface);
     color: var(--text);
     border-bottom-left-radius: 4px;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
   }
 
   .msg-user .msg-bubble {
     background: var(--accent);
     color: white;
     border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 10px rgba(232,130,106,0.3);
   }
 
   .msg-time {
@@ -1100,16 +1136,17 @@
 
   /* AI import action */
   .ai-import-card {
-    background: var(--surface3);
-    border: 1px solid var(--border);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius);
     padding: 12px;
     margin-top: 8px;
+    box-shadow: var(--shadow);
   }
 
   .ai-import-title {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
     margin-bottom: 8px;
     display: flex;
@@ -1128,7 +1165,7 @@
   }
   .ai-task-row:last-of-type { border-bottom: none; }
 
-  .ai-task-week { color: var(--accent-light); font-weight: 500; }
+  .ai-task-week { color: var(--accent); font-weight: 600; }
 
   .import-btn {
     width: 100%;
@@ -1138,14 +1175,14 @@
     border-radius: var(--radius-sm);
     padding: 9px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: white;
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     transition: all 0.2s;
-    letter-spacing: 0.3px;
+    box-shadow: 0 2px 10px rgba(232,130,106,0.3);
   }
-  .import-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .import-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(232,130,106,0.4); }
   .import-btn:active { transform: translateY(0); }
 
   .ai-suggestions {
@@ -1155,20 +1192,22 @@
     flex-wrap: wrap;
     gap: 6px;
     flex-shrink: 0;
+    background: var(--surface);
   }
 
   .suggestion-chip {
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 20px;
     padding: 5px 12px;
     font-size: 11px;
     color: var(--text-dim);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
     white-space: nowrap;
+    font-weight: 600;
   }
-  .suggestion-chip:hover { border-color: var(--accent); color: var(--accent-light); background: var(--accent-dim); }
+  .suggestion-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: translateY(-1px); }
 
   .ai-input-area {
     padding: 12px 16px 16px;
@@ -1177,46 +1216,58 @@
     gap: 8px;
     align-items: flex-end;
     flex-shrink: 0;
+    background: var(--surface);
   }
 
   .ai-input {
     flex: 1;
     background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
     padding: 10px 14px;
     font-size: 12.5px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
     resize: none;
     min-height: 40px;
     max-height: 120px;
     line-height: 1.5;
-    transition: border-color 0.15s;
+    transition: all 0.2s;
   }
-  .ai-input:focus { border-color: var(--accent); }
+  .ai-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .ai-input::placeholder { color: var(--text-muted); }
 
   .ai-send {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--accent), #9b6af7);
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), #f09c87);
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: white;
-    font-size: 14px;
-    transition: all 0.15s;
+    font-size: 15px;
+    transition: all 0.2s;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(232,130,106,0.3);
   }
-  .ai-send:hover { opacity: 0.9; transform: scale(1.05); }
+  .ai-send:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(232,130,106,0.4); }
+
+  .ai-apikey-row { padding: 8px 16px 12px; border-top: 1px solid var(--border); font-size: 11px; background: var(--surface); }
+  .ai-apikey-label { color: var(--text-muted); cursor: pointer; }
+  .ai-apikey-label:hover { color: var(--accent); }
+  .ai-apikey-input-wrap { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .ai-apikey-input { flex: 1; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: 11px; color: var(--text); }
+  .ai-apikey-input::placeholder { color: var(--text-muted); }
+  .ai-apikey-save { background: var(--accent-dim); border: 1.5px solid rgba(232,130,106,0.3); color: var(--accent); padding: 6px 12px; border-radius: 10px; font-size: 11px; cursor: pointer; font-weight: 700; }
+  .ai-apikey-save:hover { background: rgba(232,130,106,0.2); }
 
   /* ===== BOTTOM JOURNAL ===== */
   .journal-bar {
     border-top: 1px solid var(--border);
     background: var(--surface);
     flex-shrink: 0;
+    box-shadow: 0 -1px 8px rgba(100,80,60,0.04);
   }
 
   .journal-toggle {
@@ -1225,7 +1276,7 @@
     justify-content: space-between;
     padding: 10px 24px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.2s;
   }
   .journal-toggle:hover { background: var(--surface2); }
 
@@ -1235,7 +1286,7 @@
     gap: 10px;
     font-size: 12px;
     color: var(--text-dim);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .journal-toggle-right {
@@ -1261,20 +1312,25 @@
     overflow-x: auto;
   }
   .journal-entries::-webkit-scrollbar { height: 3px; }
-  .journal-entries::-webkit-scrollbar-thumb { background: var(--border); }
+  .journal-entries::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   .journal-entry {
-    background: var(--surface2);
+    background: var(--surface);
     border-radius: var(--radius);
     padding: 12px 14px;
     min-width: 180px;
     max-width: 200px;
     flex-shrink: 0;
-    border: 1px solid var(--border);
-    transition: all 0.15s;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s;
     cursor: pointer;
+    position: relative;
+    box-shadow: var(--shadow);
   }
-  .journal-entry:hover { border-color: var(--accent); }
+  .journal-entry:hover { border-color: var(--accent-light); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .journal-entry .entry-delete { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border: none; background: #fce8e8; color: var(--red); border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
+  .journal-entry .entry-delete:hover { opacity: 1; }
+  .journal-entry .entry-delete:focus { outline: none; }
 
   .entry-header {
     display: flex;
@@ -1282,7 +1338,7 @@
     align-items: center;
     margin-bottom: 6px;
   }
-  .entry-date { font-size: 10px; color: var(--text-muted); }
+  .entry-date { font-size: 10px; color: var(--text-muted); font-weight: 600; }
   .entry-mood { font-size: 16px; }
   .entry-text { font-size: 11.5px; color: var(--text-dim); line-height: 1.6; }
 
@@ -1295,19 +1351,19 @@
 
   .journal-new-input {
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
     font-size: 12px;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans SC', sans-serif;
     outline: none;
     resize: none;
     height: 70px;
-    transition: border-color 0.15s;
+    transition: all 0.2s;
     line-height: 1.5;
   }
-  .journal-new-input:focus { border-color: var(--accent); }
+  .journal-new-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .journal-new-input::placeholder { color: var(--text-muted); }
 
   .journal-actions {
@@ -1324,16 +1380,43 @@
   .journal-save {
     margin-left: auto;
     background: var(--accent-dim);
-    border: 1px solid rgba(124,106,247,0.3);
-    border-radius: 6px;
-    padding: 5px 12px;
+    border: 1.5px solid rgba(232,130,106,0.3);
+    border-radius: 20px;
+    padding: 5px 14px;
     font-size: 11px;
-    color: var(--accent-light);
+    color: var(--accent);
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
+    font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.2s;
+    font-weight: 700;
   }
-  .journal-save:hover { background: rgba(124,106,247,0.25); }
+  .journal-save:hover { background: rgba(232,130,106,0.2); }
+  .journal-save-plus { width: 36px; height: 36px; padding: 0; font-size: 20px; line-height: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+  /* notification toast */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1.5px solid var(--green);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--green);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+    font-weight: 700;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 
   /* Tab content */
   .tab-content { display: none; }
@@ -1345,10 +1428,12 @@
     gap: 4px;
     align-items: center;
     padding: 10px 14px;
-    background: var(--surface2);
-    border-radius: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
     border-bottom-left-radius: 4px;
     width: fit-content;
+    box-shadow: var(--shadow);
   }
   .typing-dot {
     width: 6px; height: 6px;
@@ -1364,34 +1449,32 @@
     30% { transform: translateY(-5px); opacity: 1; }
   }
 
-  /* notification toast */
-  .toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface3);
-    border: 1px solid var(--green);
-    border-radius: 10px;
-    padding: 10px 18px;
-    font-size: 12px;
-    color: var(--green);
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 100;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  /* 心情便签弹窗 */
+  .journal-note-overlay { position: fixed; inset: 0; background: rgba(80,50,30,0.3); backdrop-filter: blur(4px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .journal-note-overlay.show { display: flex; }
+  .journal-note-paper { background: linear-gradient(180deg, #fffdf6 0%, #fdf8ec 100%); color: #3d3530; max-width: 420px; width: 100%; border-radius: 20px; padding: 24px 28px; box-shadow: 0 12px 40px rgba(100,80,60,0.2), 0 0 0 1px rgba(200,160,100,0.15); transform: rotate(-0.5deg); position: relative; }
+  .journal-note-paper .note-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border: none; background: rgba(200,160,100,0.1); border-radius: 10px; color: #a89c8e; font-size: 18px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .journal-note-paper .note-close:hover { background: rgba(200,160,100,0.2); }
+  .journal-note-paper .note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .journal-note-paper .note-date { font-size: 12px; color: #a89c8e; font-weight: 600; }
+  .journal-note-paper .note-mood-wrap { display: flex; gap: 6px; align-items: center; }
+  .journal-note-paper .note-mood-btn { width: 32px; height: 32px; border: 1.5px solid rgba(200,160,100,0.2); border-radius: 10px; background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .journal-note-paper .note-mood-btn:hover { background: #fdf3e0; transform: scale(1.1); }
+  .journal-note-paper .note-mood-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+  .journal-note-paper .note-text { font-size: 15px; line-height: 1.7; color: #3d3530; width: 100%; min-height: 120px; max-height: 50vh; padding: 10px 0; border: none; background: transparent; resize: vertical; font-family: inherit; outline: none; }
+  .journal-note-paper .note-text::placeholder { color: #c0b090; }
+  .journal-note-paper .note-actions { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
+  .journal-note-paper .note-btn { padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; font-weight: 700; }
+  .journal-note-paper .note-btn-save { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(232,130,106,0.3); }
+  .journal-note-paper .note-btn-save:hover { opacity: 0.9; }
+  .journal-note-paper .note-btn-delete { background: rgba(200,80,80,0.12); color: #c07070; }
+  .journal-note-paper .note-btn-delete:hover { background: rgba(200,80,80,0.2); }
 
   .empty-state {
     text-align: center;
-    padding: 20px;
+    padding: 30px 20px;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   /* loading skeleton */
@@ -1399,7 +1482,7 @@
     background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
-    border-radius: 6px;
+    border-radius: 8px;
     height: 12px;
     margin: 4px 0;
   }
@@ -1424,6 +1507,7 @@
     </div>
   </div>
   <div class="topbar-right">
+    <button type="button" class="topbar-reset-btn" onclick="clearAllData()" title="清空所有任务与日程，恢复空白状态">清除数据</button>
     <div class="mood-quick">
       <span>今日心情</span>
       <span class="mood-btn" onclick="setMood(this, '😊')">😊</span>
@@ -1491,7 +1575,7 @@
 
       <!-- TODAY -->
       <div class="tab-content active" id="tab-today">
-        <div class="section-label" style="margin-bottom:12px" id="todayFocusLabel">AI为你生成的今日计划</div>
+        <div class="section-label" style="margin-bottom:12px" id="todayFocusLabel">AI为你生成的今日计划 <span class="section-delete-btn" id="todayFocusDeleteBtn" onclick="toggleArchiveDeleteMode('todayFocusItems','todayFocusDeleteBtn')" title="删除未完成任务">✕</span></div>
         <div class="focus-items" id="todayFocusItems"></div>
 
         <div class="section-label">快速添加</div>
@@ -1505,7 +1589,7 @@
               <div class="qa-picker-btn" id="qaDateBtn" onclick="toggleQAPicker('qaDatePicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:90px;">
                 <span>📅</span><span id="qaDateLabel">日期</span>
               </div>
-              <div id="qaDatePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="qaDatePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">建议</div>
                 <div class="qa-date-opt" onclick="setQADate('today')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">今天</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_today"></span></div>
                 <div class="qa-date-opt" onclick="setQADate('tomorrow')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;transition:background 0.1s;">📅 <span style="flex:1">明天</span><span style="color:var(--text-muted);font-size:11px;" id="qaDateOpt_tomorrow"></span></div>
@@ -1523,7 +1607,7 @@
               <div class="qa-picker-btn" id="qaTimeBtn" onclick="toggleQAPicker('qaTimePicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:90px;">
                 <span>⏰</span><span id="qaTimeLabel">添加时间</span>
               </div>
-              <div id="qaTimePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="qaTimePicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">开始时间</div>
                 <input type="time" id="qaTimeStart" class="add-input" style="width:100%;font-size:12px;margin-bottom:8px;" oninput="updateQATimeLabel()">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">结束时间（可选）</div>
@@ -1539,7 +1623,7 @@
               <div class="qa-picker-btn" id="qaCatBtn" onclick="toggleQAPicker('qaCatPicker')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
                 <span>🏷</span><span id="qaCatLabel">类别</span>
               </div>
-              <div id="qaCatPicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="qaCatPicker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:220px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择类别</div>
                 <div id="qaCatList" style="display:flex;flex-direction:column;gap:2px;"></div>
                 <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
@@ -1585,7 +1669,7 @@
               <div onclick="toggleQAPicker('dueCoursePickerDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:110px;">
                 <span>📚</span><span id="dueCourseSelectedLabel">选择课程</span>
               </div>
-              <div id="dueCoursePickerDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="dueCoursePickerDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择课程</div>
                 <div id="dueCoursePickerList" style="display:flex;flex-direction:column;gap:2px;"></div>
                 <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
@@ -1605,7 +1689,7 @@
               <div onclick="toggleQAPicker('dueDeadlineDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:110px;">
                 <span>📅</span><span id="dueDeadlineLabel">截止日期</span>
               </div>
-              <div id="dueDeadlineDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="dueDeadlineDrop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择截止日期</div>
                 <input type="date" id="dueDeadlineInput" class="add-input" style="width:100%;font-size:12px;margin-bottom:8px;" oninput="updateDueDeadlineLabel()">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">截止时间节点（可选）</div>
@@ -1651,7 +1735,7 @@
               <div onclick="toggleQAPicker('jobCatDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
                 <span>🏷</span><span id="jobCatLabel">类别</span>
               </div>
-              <div id="jobCatDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="jobCatDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">选择类别</div>
                 <div id="jobCatPickerList" style="display:flex;flex-direction:column;gap:2px;"></div>
                 <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end;gap:6px;">
@@ -1671,7 +1755,7 @@
               <div onclick="toggleQAPicker('jobStatusDrop')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;min-width:80px;">
                 <span>⏱</span><span id="jobStatusLabel">状态</span>
               </div>
-              <div id="jobStatusDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+              <div id="jobStatusDrop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px;min-width:190px;box-shadow:0 8px 24px rgba(100,80,60,0.15);">
                 <div class="job-status-opt" onclick="selectNewJobStatus('today')"><span class="job-status job-status-today">今日必做</span><span style="font-size:11px;color:var(--text-muted)">同步今日聚焦</span></div>
                 <div class="job-status-opt" onclick="selectNewJobStatus('week')"><span class="job-status job-status-week">本周内</span><span style="font-size:11px;color:var(--text-muted)">同步今日聚焦</span></div>
                 <div class="job-status-opt" onclick="selectNewJobStatus('date')"><span class="job-status job-status-date">指定日期</span><span style="font-size:11px;color:var(--text-muted)">可打通 Due</span></div>
@@ -1740,6 +1824,13 @@
       <textarea class="ai-input" id="aiInput" placeholder="告诉我任务，我来帮你规划..." rows="1" onkeydown="aiInputKeydown(event)" oninput="autoResize(this)"></textarea>
       <button class="ai-send" onclick="sendAiMessage()">↑</button>
     </div>
+    <div class="ai-apikey-row">
+      <span class="ai-apikey-label" id="aiApiKeyLabel" onclick="toggleAiApiKeyInput()">🔑 设置 DeepSeek API Key</span>
+      <div class="ai-apikey-input-wrap" id="aiApiKeyWrap" style="display:none;">
+        <input type="password" class="ai-apikey-input" id="aiApiKeyInput" placeholder="sk-xxx（仅存于本机，不会上传）">
+        <button type="button" class="ai-apikey-save" onclick="saveDeepSeekApiKey()">保存</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1768,8 +1859,29 @@
           <span class="mood-btn" onclick="selectJournalMood(this,'💡')">💡</span>
           <span class="mood-btn" onclick="selectJournalMood(this,'🔥')">🔥</span>
         </div>
-        <button class="journal-save" onclick="saveJournal()">保存记录</button>
+        <button class="journal-save journal-save-plus" onclick="saveJournal()" title="保存记录">+</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 心情便签弹窗（可编辑） -->
+<div class="journal-note-overlay" id="journalNoteOverlay" onclick="if(event.target===this) closeJournalNote()">
+  <div class="journal-note-paper" onclick="event.stopPropagation()">
+    <button type="button" class="note-close" onclick="closeJournalNote()" aria-label="关闭">×</button>
+    <div class="note-header">
+      <span class="note-date" id="journalNoteDate"></span>
+      <div class="note-mood-wrap" id="journalNoteMoodWrap">
+        <button type="button" class="note-mood-btn" data-mood="😊" onclick="setJournalNoteMood(this,'😊')">😊</button>
+        <button type="button" class="note-mood-btn" data-mood="😩" onclick="setJournalNoteMood(this,'😩')">😩</button>
+        <button type="button" class="note-mood-btn" data-mood="💡" onclick="setJournalNoteMood(this,'💡')">💡</button>
+        <button type="button" class="note-mood-btn" data-mood="🔥" onclick="setJournalNoteMood(this,'🔥')">🔥</button>
+      </div>
+    </div>
+    <textarea class="note-text" id="journalNoteText" placeholder="编辑内容..."></textarea>
+    <div class="note-actions">
+      <button type="button" class="note-btn note-btn-delete" onclick="deleteJournalNoteFromModal()">删除本条</button>
+      <button type="button" class="note-btn note-btn-save" onclick="saveJournalNoteFromModal()">保存</button>
     </div>
   </div>
 </div>
@@ -1786,6 +1898,7 @@ let dayTasks = {};
 let dayFocusTasks = {};
 let courseList = [];
 let customCategories = [];
+let aiConversationHistory = [];
 
 // Calendar state
 let currentDate = new Date(); currentDate.setDate(1);
@@ -1831,6 +1944,59 @@ const eventDays = [3,5,10,12,17,19,24,26];
 // === LOCALSTORAGE PERSISTENCE ===
 const STORAGE_KEY = 'flowPlannerData';
 
+function clearAllData() {
+  if (!confirm('确定要清除所有数据吗？任务、日程、日记等将全部清空。')) return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    var i, k;
+    var keysToRemove = [];
+    for (i = 0; i < localStorage.length; i++) {
+      k = localStorage.key(i);
+      if (k && (k.indexOf('flowPlanner') !== -1 || k.indexOf('flow') !== -1)) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(function(key) { localStorage.removeItem(key); });
+    keysToRemove = [];
+    for (i = 0; i < sessionStorage.length; i++) {
+      k = sessionStorage.key(i);
+      if (k && k.indexOf('flowPlanner') !== -1) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(function(key) { sessionStorage.removeItem(key); });
+  } catch (e) {}
+
+  // 重置内存中的数据
+  dayTasks = {};
+  dayFocusTasks = {};
+  dueTasks = {};
+  courseList = [];
+  customCategories = [];
+  jobCategories = ['实习', '全职', '技术准备', '材料准备'];
+  aiConversationHistory = [];
+
+  // 直接清空所有列表的 DOM（不依赖刷新，旧 HTML 里的静态内容也会被清掉）
+  var ids = ['todayFocusItems', 'todayArchiveList', 'jobList', 'jobDoneList', 'dueList', 'shopList', 'journalEntries'];
+  var list;
+  ids.forEach(function(id) {
+    list = document.getElementById(id);
+    if (list) list.innerHTML = '';
+  });
+  list = document.getElementById('dueListArchived');
+  if (list) list.innerHTML = '';
+  list = document.getElementById('jobDoneLabel');
+  if (list) list.style.display = 'none';
+
+  var sk = typeof selectedDateKey !== 'undefined' ? selectedDateKey : (typeof getTodayKey === 'function' ? getTodayKey() : '');
+  if (sk && typeof renderCalendar === 'function') renderCalendar();
+  if (sk && typeof renderDaySchedule === 'function') renderDaySchedule(sk);
+  if (sk && typeof renderTodayFocus === 'function') renderTodayFocus(sk);
+  if (typeof renderAllDueItems === 'function') renderAllDueItems();
+  if (typeof renderDueCoursePickerList === 'function') renderDueCoursePickerList();
+  if (typeof updateTopbar === 'function') updateTopbar();
+  if (typeof updateShopCount === 'function') updateShopCount();
+  if (typeof restoreAiChatUI === 'function') restoreAiChatUI();
+
+  if (typeof showToast === 'function') showToast('已清除所有数据');
+}
+
 function saveToStorage() {
   try {
     const data = {
@@ -1844,6 +2010,7 @@ function saveToStorage() {
       courseList: courseList,
       customCategories: customCategories,
       jobCategories: jobCategories,
+      aiChatHistory: aiConversationHistory,
       version: '1.3'
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -1872,6 +2039,7 @@ function loadFromStorage() {
     if (Array.isArray(data.courseList)) courseList = data.courseList;
     if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
     if (Array.isArray(data.jobCategories)) jobCategories = data.jobCategories;
+    if (Array.isArray(data.aiChatHistory)) aiConversationHistory = data.aiChatHistory;
     return true;
   } catch (e) {
     console.warn('加载数据失败:', e);
@@ -1908,12 +2076,17 @@ function renderTodayFocus(dateKey) {
   const archived = tasks.filter(t => t.archived);
   const active = tasks.filter(t => !t.archived);
   
-  // 渲染活跃任务
+  // 渲染活跃任务（支持删除模式：显示删除按钮）
   active.forEach(task => {
     const item = document.createElement('div');
     item.className = 'focus-item';
     item.id = task.id;
     item.innerHTML = task.html;
+    const delBtn = document.createElement('span');
+    delBtn.className = 'item-delete-btn';
+    delBtn.textContent = '✕';
+    delBtn.onclick = function(ev) { ev.stopPropagation(); deleteFocusItem(task.id, dateKey); };
+    item.appendChild(delBtn);
     list.appendChild(item);
   });
   
@@ -1974,6 +2147,11 @@ function renderTodayFocus(dateKey) {
         item.className = 'focus-item';
         item.id = task.id;
         item.innerHTML = task.html;
+        const delBtn = document.createElement('span');
+        delBtn.className = 'item-delete-btn';
+        delBtn.textContent = '✕';
+        delBtn.onclick = function(ev) { ev.stopPropagation(); deleteFocusItem(task.id, dateKey); };
+        item.appendChild(delBtn);
         list.appendChild(item);
       }
     });
@@ -2012,6 +2190,11 @@ function renderTodayFocus(dateKey) {
     dueItem.className = 'focus-item';
     dueItem.id = syncId;
     dueItem.innerHTML = itemHtml;
+    const dueDelBtn = document.createElement('span');
+    dueDelBtn.className = 'item-delete-btn';
+    dueDelBtn.textContent = '✕';
+    dueDelBtn.onclick = function(ev) { ev.stopPropagation(); deleteFocusItem(syncId, dateKey); };
+    dueItem.appendChild(dueDelBtn);
     list.appendChild(dueItem);
     // 同步存入 dayFocusTasks，确保刷新后能持久化
     if (!dayFocusTasks[dateKey]) dayFocusTasks[dateKey] = [];
@@ -2309,10 +2492,12 @@ function serializeJournalEntries() {
   if (!entries) return [];
   const items = [];
   entries.querySelectorAll('.journal-entry').forEach(entry => {
+    var clone = entry.cloneNode(true);
+    clone.querySelectorAll('.entry-delete').forEach(function(b) { b.remove(); });
     const date = entry.querySelector('.entry-date')?.textContent || '';
     const mood = entry.querySelector('.entry-mood')?.textContent || '';
     const text = entry.querySelector('.entry-text')?.textContent || '';
-    items.push({ date, mood, text, html: entry.innerHTML });
+    items.push({ date, mood, text, html: clone.innerHTML });
   });
   return items;
 }
@@ -2320,13 +2505,19 @@ function serializeJournalEntries() {
 function restoreJournalEntries(items) {
   const entries = document.getElementById('journalEntries');
   if (!entries || !items.length) return;
-  
-  // 用保存的数据完整替换（包含用户修改过的示例条目）
   entries.innerHTML = '';
   items.forEach(item => {
     const el = document.createElement('div');
     el.className = 'journal-entry';
     el.innerHTML = item.html;
+    el.querySelectorAll('.entry-delete').forEach(function(b) { b.remove(); });
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'entry-delete';
+    delBtn.innerHTML = '×';
+    delBtn.setAttribute('aria-label', '删除');
+    delBtn.onclick = function(e) { e.stopPropagation(); deleteJournalEntry(el); };
+    el.appendChild(delBtn);
     entries.appendChild(el);
   });
 }
@@ -2337,6 +2528,14 @@ function makeDateKey(y, m, d) {
 
 function formatDateKeyFromDate(date) {
   return makeDateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
+}
+
+function getNameFromFocusHtml(html) {
+  if (!html) return '';
+  var d = document.createElement('div');
+  d.innerHTML = html;
+  var el = d.querySelector('.focus-title');
+  return el ? el.textContent.trim() : '';
 }
 
 function renderDaySchedule(dateKey) {
@@ -2356,9 +2555,17 @@ function renderDaySchedule(dateKey) {
   }
 
   list.innerHTML = '';
-  const tasks = (dayTasks[dateKey] || []).slice().sort((a, b) => {
-    return (a.time || '').localeCompare(b.time || '');
-  });
+  // 日历事件
+  const fromDayTasks = (dayTasks[dateKey] || []).map(t => ({ time: t.time || '', name: t.name || '', tag: t.tag || '', type: t.type || 'task' }));
+  // 今日聚焦中选了时间的未归档任务，同步到 Schedule
+  const focusWithTime = (dayFocusTasks[dateKey] || []).filter(t => t.timeStart && !t.archived);
+  const fromFocus = focusWithTime.map(t => ({
+    time: t.timeEnd ? (t.timeStart + ' – ' + t.timeEnd) : t.timeStart,
+    name: getNameFromFocusHtml(t.html) || '待办',
+    tag: t.note || '',
+    type: 'task'
+  }));
+  const tasks = fromDayTasks.concat(fromFocus).filter(t => t.time).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
   if (!tasks.length) {
     const empty = document.createElement('div');
@@ -2738,6 +2945,7 @@ checkDueWarnings();
 updateShopCount();
 initQAPickers();
 initJobDoneList(); // 已完成求职任务归档初始化
+if (typeof initJournalEntryClicks === 'function') initJournalEntryClicks();
 
 // 初始化日期选择器的默认值为今天
 // Initialize due deadline min date
@@ -2966,6 +3174,20 @@ function toggleArchiveDeleteMode(listId, btnId) {
   const isOn = list.classList.toggle('delete-mode-on');
   btn.classList.toggle('active', isOn);
   btn.textContent = isOn ? '完成' : '✕';
+}
+
+// 删除今日聚焦未完成任务（未归档的）
+function deleteFocusItem(taskId, dateKey) {
+  const dk = dateKey || selectedDateKey;
+  if (dayFocusTasks[dk]) {
+    dayFocusTasks[dk] = dayFocusTasks[dk].filter(t => t.id !== taskId);
+  }
+  const item = document.getElementById(taskId);
+  if (item) item.remove();
+  renderDaySchedule(dk);
+  updateTopbar();
+  saveToStorage();
+  showToast('已删除');
 }
 
 // 删除今日聚焦已归档任务
@@ -3461,7 +3683,60 @@ function shopAdd() {
 }
 
 function shopAddKeydown(e) {
-  if (e.key === 'Enter') shopAdd();
+  if (e.key === 'Enter' && !e.isComposing) shopAdd();
+}
+
+function addShopItemsByText(items) {
+  if (!items || !Array.isArray(items)) return;
+  var list = document.getElementById('shopList');
+  if (!list) return;
+  items.forEach(function(val) {
+    var s = (val && val.trim) ? val.trim() : String(val).trim();
+    if (!s) return;
+    var id = 'sh' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    var item = document.createElement('div');
+    item.className = 'shop-item';
+    item.id = id;
+    item.innerHTML = '<div class="shop-check" onclick="toggleShop(this,\'' + id + '\')"></div>' + s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    list.appendChild(item);
+  });
+  if (typeof updateShopCount === 'function') updateShopCount();
+  if (typeof saveToStorage === 'function') saveToStorage();
+}
+
+function addToTodayFocus(tasks) {
+  if (!tasks || !Array.isArray(tasks)) return;
+  var todayKey = typeof getTodayKey === 'function' ? getTodayKey() : formatDateKeyFromDate(new Date());
+  var mainList = document.getElementById('todayFocusItems');
+  var catMap = { '课程': 'tag-course', '求职': 'tag-job', '生活': 'tag-life' };
+  tasks.forEach(function(t) {
+    var title = (t && t.title) ? String(t.title).trim() : (t && t.name) ? String(t.name).trim() : '';
+    if (!title) return;
+    var cat = (t && t.category) ? t.category : '生活';
+    var cls = catMap[cat] || 'tag-life';
+    var id = 'fi' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    var timeDisplay = typeof formatDateDisplay === 'function' ? formatDateDisplay(todayKey) : '今日';
+    var itemHtml = '<div class="focus-check" onclick="focusCheck(this,\'' + id + '\')"></div><div class="focus-info"><div class="focus-title">' + title.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div><div class="focus-meta"><span class="tag ' + cls + '">' + (cat === '生活' ? '生活' : cat === '课程' ? '课程' : '求职') + '</span></div></div><div class="focus-time">' + timeDisplay + '</div>';
+    if (!dayFocusTasks[todayKey]) dayFocusTasks[todayKey] = [];
+    dayFocusTasks[todayKey].push({ id: id, html: itemHtml, archived: false, dateKey: todayKey });
+    if (mainList && selectedDateKey === todayKey) {
+      var empty = mainList.querySelector('.empty-state');
+      if (empty) empty.remove();
+      var item = document.createElement('div');
+      item.className = 'focus-item';
+      item.id = id;
+      item.innerHTML = itemHtml;
+      mainList.appendChild(item);
+    }
+  });
+  if (typeof updateTopbar === 'function') updateTopbar();
+  if (typeof saveToStorage === 'function') saveToStorage();
+}
+
+function executeFlowActions(obj) {
+  if (!obj || typeof obj !== 'object') return;
+  if (Array.isArray(obj.shop_add)) addShopItemsByText(obj.shop_add);
+  if (Array.isArray(obj.focus_add)) addToTodayFocus(obj.focus_add);
 }
 
 // === QA PICKER SYSTEM ===
@@ -3719,12 +3994,7 @@ function quickAdd() {
   if (!dayFocusTasks[targetDateKey]) dayFocusTasks[targetDateKey] = [];
   dayFocusTasks[targetDateKey].push({ id, html: itemHtml, archived: false, dateKey: targetDateKey, timeStart, timeEnd, note });
 
-  // Auto-sync to calendar schedule if time set
-  if (timeStart) {
-    if (!dayTasks[targetDateKey]) dayTasks[targetDateKey] = [];
-    const timeStr = timeEnd ? `${timeStart} – ${timeEnd}` : timeStart;
-    dayTasks[targetDateKey].push({ time: timeStr, name: val, tag: '🏷 ' + cat.text + (note ? ' · ' + note : ''), type: 'task' });
-  }
+  // Schedule 由 renderDaySchedule 从 dayFocusTasks 带时间的项自动渲染，此处不再重复写入 dayTasks
 
   // 求职类别 → 同步到找工作板块
   if (cat.value === '求职') {
@@ -3769,7 +4039,10 @@ function quickAdd() {
   saveToStorage();
 }
 
-function quickAddKeydown(e) { if (e.key === 'Enter') quickAdd(); }
+function quickAddKeydown(e) {
+  // 中文输入法下按 Enter 是确认选字，不提交任务
+  if (e.key === 'Enter' && !e.isComposing) quickAdd();
+}
 
 // ── Init ─────────────────────────────────────────────────
 function initQAPickers() {
@@ -4282,7 +4555,7 @@ function jobAdd() {
   saveToStorage();
 }
 
-function jobAddKeydown(e) { if (e.key === 'Enter') jobAdd(); }
+function jobAddKeydown(e) { if (e.key === 'Enter' && !e.isComposing) jobAdd(); }
 
 // 删除找工作任务（已完成区永久删除）
 function deleteJobItem(jobId) {
@@ -4351,13 +4624,20 @@ function saveJournal() {
       <span class="entry-date">${now.getMonth()+1}月${now.getDate()}日 刚刚</span>
       <span class="entry-mood">${selectedJournalMood}</span>
     </div>
-    <div class="entry-text">${text}</div>
+    <div class="entry-text">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
   `;
+  var delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'entry-delete';
+  delBtn.innerHTML = '×';
+  delBtn.setAttribute('aria-label', '删除');
+  delBtn.onclick = function(e) { e.stopPropagation(); deleteJournalEntry(entry); };
+  entry.appendChild(delBtn);
   entry.style.animation = 'fadeUp 0.3s ease';
   entries.insertBefore(entry, entries.firstChild);
   document.getElementById('journalInput').value = '';
   showToast('📔 已保存到日记');
-  saveToStorage(); // 保存日记
+  saveToStorage();
 }
 
 // === JOURNAL TOGGLE ===
@@ -4368,9 +4648,119 @@ function toggleJournal() {
   arrow.textContent = content.classList.contains('open') ? '▴' : '▾';
 }
 
-// === REAL CLAUDE AI CHAT ===
+var _journalNoteEntryEl = null;
+
+function setJournalNoteMood(btn, mood) {
+  document.querySelectorAll('#journalNoteMoodWrap .note-mood-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+}
+
+function openJournalNote(entryEl) {
+  if (!entryEl || entryEl.closest('.entry-delete')) return;
+  var dateEl = entryEl.querySelector('.entry-date');
+  var moodEl = entryEl.querySelector('.entry-mood');
+  var textEl = entryEl.querySelector('.entry-text');
+  var date = dateEl ? dateEl.textContent : '';
+  var mood = moodEl ? moodEl.textContent.trim() : '😊';
+  var text = textEl ? textEl.textContent : '';
+  _journalNoteEntryEl = entryEl;
+  var overlay = document.getElementById('journalNoteOverlay');
+  var dateNode = document.getElementById('journalNoteDate');
+  var textNode = document.getElementById('journalNoteText');
+  if (overlay && dateNode && textNode) {
+    dateNode.textContent = date;
+    textNode.value = text;
+    document.querySelectorAll('#journalNoteMoodWrap .note-mood-btn').forEach(function(b) {
+      b.classList.toggle('active', (b.getAttribute('data-mood') === mood));
+    });
+    overlay.classList.add('show');
+    textNode.focus();
+  }
+}
+function closeJournalNote() {
+  _journalNoteEntryEl = null;
+  var overlay = document.getElementById('journalNoteOverlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
+function saveJournalNoteFromModal() {
+  if (!_journalNoteEntryEl) { closeJournalNote(); return; }
+  var textNode = document.getElementById('journalNoteText');
+  var dateNode = document.getElementById('journalNoteDate');
+  var mood = '😊';
+  var activeBtn = document.querySelector('#journalNoteMoodWrap .note-mood-btn.active');
+  if (activeBtn) mood = activeBtn.getAttribute('data-mood') || '😊';
+  var date = dateNode ? dateNode.textContent : '';
+  var text = textNode ? textNode.value : '';
+  _journalNoteEntryEl.innerHTML = '<div class="entry-header"><span class="entry-date">' + date.replace(/</g, '&lt;') + '</span><span class="entry-mood">' + mood + '</span></div><div class="entry-text">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+  var delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'entry-delete';
+  delBtn.innerHTML = '×';
+  delBtn.setAttribute('aria-label', '删除');
+  delBtn.onclick = function(e) { e.stopPropagation(); deleteJournalEntry(_journalNoteEntryEl); };
+  _journalNoteEntryEl.appendChild(delBtn);
+  if (typeof saveToStorage === 'function') saveToStorage();
+  if (typeof showToast === 'function') showToast('已保存');
+  closeJournalNote();
+}
+
+function deleteJournalNoteFromModal() {
+  if (!_journalNoteEntryEl) { closeJournalNote(); return; }
+  _journalNoteEntryEl.remove();
+  if (typeof saveToStorage === 'function') saveToStorage();
+  if (typeof showToast === 'function') showToast('已删除该条心情');
+  closeJournalNote();
+}
+
+function deleteJournalEntry(entryEl) {
+  if (!entryEl) return;
+  entryEl.remove();
+  if (typeof saveToStorage === 'function') saveToStorage();
+  if (typeof showToast === 'function') showToast('已删除');
+}
+
+// 点击已有心情条目时打开便签弹窗；点击删除按钮则只删除（事件委托）
+function initJournalEntryClicks() {
+  var entries = document.getElementById('journalEntries');
+  if (entries && !entries._journalNoteBound) {
+    entries._journalNoteBound = true;
+    entries.addEventListener('click', function(e) {
+      if (e.target.closest('.entry-delete')) return;
+      var entry = e.target.closest('.journal-entry');
+      if (entry) openJournalNote(entry);
+    });
+  }
+}
+
+// === DEEPSEEK AI CHAT ===
+const DEEPSEEK_API_KEY_STORAGE = 'flowPlanner_deepseek_api_key';
 let aiTyping = false;
-let aiConversationHistory = [];
+
+function toggleAiApiKeyInput() {
+  var wrap = document.getElementById('aiApiKeyWrap');
+  var input = document.getElementById('aiApiKeyInput');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'flex';
+    var saved = localStorage.getItem(DEEPSEEK_API_KEY_STORAGE);
+    input.value = saved ? '********' + (saved.slice(-4)) : '';
+    input.placeholder = saved ? '已保存，可重新输入以覆盖' : 'sk-xxx（仅存于本机）';
+    input.focus();
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+function saveDeepSeekApiKey() {
+  var input = document.getElementById('aiApiKeyInput');
+  var val = input && input.value.trim();
+  if (!val) { if (typeof showToast === 'function') showToast('请输入 API Key'); return; }
+  if (val.indexOf('*') !== -1) return;
+  try {
+    localStorage.setItem(DEEPSEEK_API_KEY_STORAGE, val);
+    document.getElementById('aiApiKeyWrap').style.display = 'none';
+    if (typeof showToast === 'function') showToast('✓ API Key 已保存（仅存本机）');
+  } catch (e) { if (typeof showToast === 'function') showToast('保存失败'); }
+}
 
 function buildSystemPrompt() {
   const today = new Date();
@@ -4396,7 +4786,7 @@ function buildSystemPrompt() {
   }
   const shopList = document.getElementById('shopList');
   const pendingShop = shopList ? Array.from(shopList.querySelectorAll('.shop-item:not(.done)')).map(el=>el.textContent.trim()).join('，') : '';
-  return `你是 Flow AI，专为在校大学生设计的智能规划助手。用中文回复，语气友好专业。\n今天是 ${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日。\n\n用户待办任务：\n${allTasks.length>0?allTasks.join('\n'):'暂无'}\n\n长期任务(Due时间线)：\n${dueTaskList.length>0?dueTaskList.join('\n'):'暂无'}\n\n购物清单待购：${pendingShop||'暂无'}\n\n当你需要给出任务拆解计划时，在回复末尾附加：<!--TASK_PLAN:{"title":"计划名","tasks":[{"name":"步骤名","week":"时间"},...]}-->\n这个JSON最多8个步骤，其他内容正常中文回复。`;
+  return `你是 Flow AI，专为在校大学生设计的智能规划助手。用中文回复，语气友好专业。\n今天是 ${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日。\n\n用户待办任务：\n${allTasks.length>0?allTasks.join('\n'):'暂无'}\n\n长期任务(Due时间线)：\n${dueTaskList.length>0?dueTaskList.join('\n'):'暂无'}\n\n购物清单待购：${pendingShop||'暂无'}\n\n【必须遵守的动作格式，这样网站才会真正执行】\n1. 当用户说「我今天需要xxx」「今天要xxx」「帮我加入今日待办」或明确同意加入待办时，你必须在回复中包含：<!--FLOW_ACTION:{"focus_add":[{"title":"任务名"}]}--> 可多个任务：{"focus_add":[{"title":"A"},{"title":"B","category":"生活"}]}，category 可选：生活/课程/求职。网站会真实加入「今日聚焦」待办。\n2. 若用户只说「我今天需要xxx」尚未明确说加待办，你可先问一句「需要帮你加入今日待办吗？」用户说好/加/可以 后再回复并带上上述 focus_add。\n3. 当用户说「添加到购物清单」「帮我买xxx」时，回复中包含：<!--FLOW_ACTION:{"shop_add":["物品1","物品2"]}-->。\n4. 当用户要求「加到 Due」「添加进 Due」时，回复末尾附加：<!--TASK_PLAN:{"title":"计划名","tasks":[{"name":"步骤名","week":"时间"},...]}--> 并提醒点击「一键导入」。\n5. 先简短回复，再输出标签。FLOW_ACTION 与 TASK_PLAN 可同时存在。`;
 }
 
 function autoResize(el) {
@@ -4416,43 +4806,70 @@ async function sendAiMessage() {
   const input = document.getElementById('aiInput');
   const text = input.value.trim();
   if (!text) return;
+  var apiKey = localStorage.getItem(DEEPSEEK_API_KEY_STORAGE);
+  if (!apiKey || !apiKey.trim() || apiKey.length < 20) {
+    appendMsg('请先在下方点击「🔑 设置 DeepSeek API Key」填写并保存你的 API Key 后再发送消息。', 'ai');
+    return;
+  }
   appendMsg(text, 'user');
   input.value = '';
   input.style.height = 'auto';
   aiTyping = true;
   const typingEl = showTyping();
   aiConversationHistory.push({ role: 'user', content: text });
+  var messages = [
+    { role: 'system', content: buildSystemPrompt() },
+    { role: 'user', content: aiConversationHistory[aiConversationHistory.length - 1].content }
+  ];
+  if (aiConversationHistory.length > 1) {
+    messages = [{ role: 'system', content: buildSystemPrompt() }];
+    aiConversationHistory.forEach(function(m) {
+      messages.push({ role: m.role, content: m.content });
+    });
+  }
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey.trim()
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'deepseek-chat',
         max_tokens: 1000,
-        system: buildSystemPrompt(),
-        messages: aiConversationHistory
+        messages: messages
       })
     });
     const data = await response.json();
     typingEl.remove();
     aiTyping = false;
-    if (data.content && data.content[0]) {
-      const fullText = data.content[0].text || '';
+    var fullText = '';
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      fullText = data.choices[0].message.content || '';
+    }
+    if (data.error && data.error.message) {
+      appendMsg('API 返回错误：' + data.error.message, 'ai');
+      return;
+    }
+    if (fullText) {
+      var actionMatch = fullText.match(/<!--FLOW_ACTION:([\s\S]*?)-->/);
+      if (actionMatch) { try { executeFlowActions(JSON.parse(actionMatch[1])); } catch(e){} }
       const planMatch = fullText.match(/<!--TASK_PLAN:([\s\S]*?)-->/);
-      let planData = null;
-      let displayText = fullText.replace(/<!--TASK_PLAN:[\s\S]*?-->/g, '').trim();
+      var planData = null;
+      var displayText = fullText.replace(/<!--TASK_PLAN:[\s\S]*?-->/g, '').replace(/<!--FLOW_ACTION:[\s\S]*?-->/g, '').trim();
       if (planMatch) { try { planData = JSON.parse(planMatch[1]); } catch(e){} }
-      const formattedText = displayText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      var formattedText = displayText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
       appendMsg(formattedText, 'ai', planData);
       aiConversationHistory.push({ role: 'assistant', content: fullText });
       if (aiConversationHistory.length > 20) aiConversationHistory = aiConversationHistory.slice(-16);
+      if (typeof saveToStorage === 'function') saveToStorage();
     } else {
       appendMsg('抱歉，AI 暂时无法响应，请稍后重试。', 'ai');
     }
   } catch (err) {
     typingEl.remove();
     aiTyping = false;
-    appendMsg('⚠️ 连接失败，请检查网络或稍后重试。', 'ai');
+    appendMsg('⚠️ 连接失败：' + (err.message || '请检查网络或 API Key 是否正确').toString(), 'ai');
   }
 }
 
@@ -4483,6 +4900,28 @@ function showTyping() {
   return el;
 }
 
+function restoreAiChatUI() {
+  var container = document.getElementById('aiMessages');
+  if (!container) return;
+  container.innerHTML = '';
+  var welcomeHtml = '<div class="msg msg-ai"><div class="msg-bubble">你好！我是 Flow AI 🎉<br><br>告诉我任何大任务，我来帮你拆解然后自动排入日历。<br><br><span style="font-size:10px;color:var(--text-muted)">💡 添加任务后，我会结合你的进度给出建议</span></div><div class="msg-time"></div></div>';
+  container.innerHTML = welcomeHtml;
+  if (aiConversationHistory && aiConversationHistory.length > 0) {
+    aiConversationHistory.forEach(function(m) {
+      if (m.role === 'user') {
+        appendMsg(m.content, 'user');
+      } else if (m.role === 'assistant' && m.content) {
+        var planMatch = m.content.match(/<!--TASK_PLAN:([\s\S]*?)-->/);
+        var planData = null;
+        var displayText = m.content.replace(/<!--TASK_PLAN:[\s\S]*?-->/g, '').replace(/<!--FLOW_ACTION:[\s\S]*?-->/g, '').trim();
+        if (planMatch) { try { planData = JSON.parse(planMatch[1]); } catch(e){} }
+        var formattedText = displayText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        appendMsg(formattedText, 'ai', planData);
+      }
+    });
+  }
+  container.scrollTop = container.scrollHeight;
+}
 
 function handleImportPlan(btn, card) {
   if (!card || !card.tasks) return;
@@ -4544,14 +4983,43 @@ function updateShopCount() {
   const label = document.querySelector('#tab-shop .section-label');
   if (label) label.textContent = `🛒 购物清单 · 待购 ${pending} 项`;
 
-  // 同步今日聚焦里的购物提醒任务（找所有包含"去超市"的 focus-item）
+  const todayKey = typeof getTodayKey === 'function' ? getTodayKey() : '';
+  if (pending >= 1 && todayKey) {
+    var hasShopReminder = false;
+    if (dayFocusTasks[todayKey]) {
+      hasShopReminder = dayFocusTasks[todayKey].some(function(t) { return t.id === 'shopReminder' || (t.html && t.html.indexOf('去超市') !== -1); });
+    }
+    if (!hasShopReminder && document.getElementById('shopReminder') === null) {
+      var itemHtml = '<div class="focus-check" onclick="focusCheck(this,\'shopReminder\')"></div><div class="focus-info"><div class="focus-title">去超市买东西（清单里有' + pending + '项）</div><div class="focus-meta"><span class="tag tag-life">生活</span><span>购物清单已准备</span></div></div><div class="focus-time">下午</div>';
+      if (!dayFocusTasks[todayKey]) dayFocusTasks[todayKey] = [];
+      dayFocusTasks[todayKey].push({ id: 'shopReminder', html: itemHtml, archived: false, dateKey: todayKey });
+      var mainList = document.getElementById('todayFocusItems');
+      if (mainList && selectedDateKey === todayKey) {
+        var empty = mainList.querySelector('.empty-state');
+        if (empty) empty.remove();
+        var el = document.createElement('div');
+        el.className = 'focus-item';
+        el.id = 'shopReminder';
+        el.innerHTML = itemHtml;
+        mainList.appendChild(el);
+      }
+      if (typeof saveToStorage === 'function') saveToStorage();
+    }
+  }
+
+  // 同步今日聚焦里的购物提醒任务（找所有包含"去超市"的 focus-item）：更新数量、待购为0时自动归档
   const shopFocusItems = document.querySelectorAll('.focus-item');
   shopFocusItems.forEach(item => {
     const titleEl = item.querySelector('.focus-title');
     if (!titleEl || !titleEl.textContent.includes('去超市')) return;
 
-    // 更新标题里的数字
+    // 更新标题里的数字（DOM + dayFocusTasks）
     titleEl.textContent = titleEl.textContent.replace(/清单里有\d+项/, `清单里有${pending}项`);
+    var todayK = typeof getTodayKey === 'function' ? getTodayKey() : '';
+    if (todayK && dayFocusTasks[todayK]) {
+      var ti = dayFocusTasks[todayK].findIndex(function(t) { return t.id === item.id; });
+      if (ti !== -1) dayFocusTasks[todayK][ti].html = item.innerHTML;
+    }
 
     const archiveList = document.getElementById('todayArchiveList');
     const archiveLabel = document.getElementById('todayArchiveLabel');
@@ -4574,6 +5042,17 @@ function updateShopCount() {
           item.appendChild(delBtn);
         }
         if (archiveList) { archiveList.appendChild(item); if (archiveLabel) archiveLabel.style.display = 'flex'; }
+        var dk = typeof selectedDateKey !== 'undefined' ? selectedDateKey : (typeof getTodayKey === 'function' ? getTodayKey() : '');
+        if (dk && dayFocusTasks[dk]) {
+          var idx = dayFocusTasks[dk].findIndex(function(t) { return t.id === item.id; });
+          if (idx !== -1) {
+            var tmpBtn = item.querySelector('.item-delete-btn');
+            if (tmpBtn) tmpBtn.remove();
+            dayFocusTasks[dk][idx].archived = true;
+            dayFocusTasks[dk][idx].html = item.innerHTML;
+            if (tmpBtn) item.appendChild(tmpBtn);
+          }
+        }
       }
     } else {
       // 恢复到待办区
@@ -4585,6 +5064,14 @@ function updateShopCount() {
         if (delBtn) delBtn.remove();
         if (mainList) mainList.appendChild(item);
         if (archiveList && archiveList.children.length === 0 && archiveLabel) archiveLabel.style.display = 'none';
+        var dk2 = typeof selectedDateKey !== 'undefined' ? selectedDateKey : (typeof getTodayKey === 'function' ? getTodayKey() : '');
+        if (dk2 && dayFocusTasks[dk2]) {
+          var idx2 = dayFocusTasks[dk2].findIndex(function(t) { return t.id === item.id; });
+          if (idx2 !== -1) {
+            dayFocusTasks[dk2][idx2].archived = false;
+            dayFocusTasks[dk2][idx2].html = item.innerHTML;
+          }
+        }
       }
     }
   });
@@ -4734,6 +5221,11 @@ document.querySelectorAll('.focus-item, .due-item, .sched-item').forEach((el, i)
     el.style.transform = 'translateY(0)';
   }, 100 + i * 60);
 });
+
+// 恢复 AI 聊天记录（若本地有保存）
+if (typeof restoreAiChatUI === 'function' && aiConversationHistory && aiConversationHistory.length > 0) {
+  restoreAiChatUI();
+}
 </script>
 </body>
 </html>
