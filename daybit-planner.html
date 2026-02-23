@@ -1766,7 +1766,7 @@
       <span class="mood-btn" onclick="topbarMoodClick('1F4AD','想太多')" data-code="1F4AD" title="想太多"><img src="https://openmoji.org/data/color/svg/1F4AD.svg"></span>
       <button class="mood-more-btn" onclick="topbarMoodMore()" title="更多心情">···</button>
     </div>
-    <div class="avatar" id="avatarBtn" onclick="document.getElementById('avatarInput').click()" title="点击更换头像">李</div>
+    <div class="avatar" id="avatarBtn" onclick="document.getElementById('avatarInput').click()" title="点击更换头像">+</div>
     <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
   </div>
 </div>
@@ -5250,6 +5250,9 @@ function handleAvatarUpload(e) {
     var dataUrl = ev.target.result;
     localStorage.setItem('flowUserAvatar', dataUrl);
     applyAvatar(dataUrl);
+    if (typeof USER_ID !== 'undefined' && USER_ID && typeof syncModule === 'function') {
+      syncModule('avatar', { dataUrl: dataUrl });
+    }
   };
   reader.readAsDataURL(file);
   e.target.value = ''; // reset so same file can be re-selected
@@ -5260,7 +5263,7 @@ function applyAvatar(dataUrl) {
   if (dataUrl) {
     btn.innerHTML = '<img src="' + dataUrl + '" alt="头像">';
   } else {
-    btn.textContent = '李';
+    btn.textContent = '+';
   }
 }
 // 启动时恢复头像
@@ -6186,6 +6189,10 @@ async function loadFromCloud() {
         }
         if (row.module === 'mood') {
           localStorage.setItem('flowMoodEntries', JSON.stringify(obj));
+        }
+        if (row.module === 'avatar' && obj.dataUrl) {
+          applyAvatar(obj.dataUrl);
+          localStorage.setItem('flowUserAvatar', obj.dataUrl);
         }
         if (row.module === 'ai') {
           if (Array.isArray(obj)) aiConversationHistory = obj;
