@@ -1804,15 +1804,17 @@
         <div id="dayScheduleList"></div>
       </div>
 
-      <div class="section-label" style="margin-top:14px">添加课程</div>
-      <div class="add-course-form">
-        <div class="row">
-          <input type="time" id="addCourseStart" title="开始时间">
-          <input type="time" id="addCourseEnd" title="结束时间">
+      <div id="addCourseSection">
+        <div class="section-label" style="margin-top:14px">添加课程</div>
+        <div class="add-course-form">
+          <div class="row">
+            <input type="time" id="addCourseStart" title="开始时间">
+            <input type="time" id="addCourseEnd" title="结束时间">
+          </div>
+          <input class="add-input" id="addCourseName" placeholder="课程名称">
+          <input class="add-input" id="addCourseLocation" placeholder="地点（选填）">
+          <button class="add-btn" onclick="addManualCourse()">+ 添加课程</button>
         </div>
-        <input class="add-input" id="addCourseName" placeholder="课程名称">
-        <input class="add-input" id="addCourseLocation" placeholder="地点（选填）">
-        <button class="add-btn" onclick="addManualCourse()">+ 添加课程</button>
       </div>
     </div>
   </div>
@@ -2212,6 +2214,9 @@ let selectedJobCat = null;
 // Calendar constants
 const dows = ['日','一','二','三','四','五','六'];
 
+// 登录状态（提前定义，用于未登录时不加载/不显示用户数据）
+var USER_ID = localStorage.getItem('daybit_user_id') || null;
+var CURRENT_USERNAME = localStorage.getItem('daybit_username') || null;
 
 const dueDays = [21, 28];
 const eventDays = [3,5,10,12,17,19,24,26];
@@ -2806,9 +2811,9 @@ function renderDaySchedule(dateKey) {
   }
 
   list.innerHTML = '';
-  const tasks = (dayTasks[dateKey] || []).slice().sort((a, b) => {
-    return (a.time || '').localeCompare(b.time || '');
-  });
+  // 未登录不显示任何日程/课表，仅登录用户显示该用户的数据
+  let tasks = USER_ID ? (dayTasks[dateKey] || []).slice() : [];
+  tasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
   if (!tasks.length) {
     const empty = document.createElement('div');
@@ -3004,11 +3009,11 @@ function renderCalendar() {
     }
     const dateKey = makeDateKey(year, month + 1, d);
 
-    // due：只看 dueTasks 里截止日 = 今天的（不含子任务导入的日历事件）
-    const hasDue = Object.values(dueTasks || {}).some(t => !t.archived && t.deadline === dateKey);
+    // due：仅登录用户显示；只看 dueTasks 里截止日 = 今天的
+    const hasDue = USER_ID && Object.values(dueTasks || {}).some(t => !t.archived && t.deadline === dateKey);
 
-    // 有日程：dayTasks（课程/任务）里有内容，排除纯 due 类型本身
-    const hasDayEvents = !!(dayTasks[dateKey] && dayTasks[dateKey].some(t => t.type !== 'due'));
+    // 有日程：仅登录用户显示 dayTasks（课程/任务）
+    const hasDayEvents = !!(USER_ID && dayTasks[dateKey] && dayTasks[dateKey].some(t => t.type !== 'due'));
     const hasEvent = hasDayEvents;
 
     if (dateKey === selectedDateKey) el.classList.add('selected');
@@ -3145,16 +3150,21 @@ function initDefaultTasks() {
   }
 }
 
-// 页面加载时先恢复数据；无保存数据时仅保证今日聚焦为空数组，不注入任何演示数据
-const hasLoadedData = loadFromStorage();
-if (!hasLoadedData) {
-  initDefaultTasks();
-} else {
-  showToast('📦 已恢复保存的数据');
-  const tk2 = formatDateKeyFromDate(new Date());
-  if (!dayFocusTasks[tk2] || dayFocusTasks[tk2].length === 0) {
+// 页面加载时：已登录则恢复数据，未登录则不做任何加载（课表/日程等均为空）
+if (USER_ID) {
+  const hasLoadedData = loadFromStorage();
+  if (!hasLoadedData) {
     initDefaultTasks();
+  } else {
+    showToast('📦 已恢复保存的数据');
+    const tk2 = formatDateKeyFromDate(new Date());
+    if (!dayFocusTasks[tk2] || dayFocusTasks[tk2].length === 0) {
+      initDefaultTasks();
+    }
   }
+} else {
+  dayTasks = {};
+  courseList = [];
 }
 
 // 若从本地文件(file://)打开，部分浏览器无法持久化 localStorage，提示用户
@@ -3165,13 +3175,15 @@ if (typeof location !== 'undefined' && location.protocol === 'file:' && !session
   }, 800);
 }
 
-// 初始化Due任务（无论是否有保存的数据，都需要渲染）
-if (!dueTasks || Object.keys(dueTasks).length === 0) {
-  initDefaultDueTasks();
-} else {
-  Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
-  renderAllDueItems();
-  renderDueCourseSelect();
+// 初始化Due任务（仅登录用户：有保存数据则渲染，否则用默认）
+if (USER_ID) {
+  if (!dueTasks || Object.keys(dueTasks).length === 0) {
+    initDefaultDueTasks();
+  } else {
+    Object.keys(dueTasks).forEach(id => ensureCourseInList(dueTasks[id].course));
+    renderAllDueItems();
+    renderDueCourseSelect();
+  }
 }
 
 selectedDateKey = formatDateKeyFromDate(new Date()); // Set now that helper is defined
@@ -5739,11 +5751,18 @@ function updateTopbar() {
   const nowDecimal = now.getHours() + now.getMinutes() / 60; // e.g. 10.5 = 10:30
   const todayKey = getTodayKey();
 
-  // ── 节课：统计今天全部课程数量 ──
-  const todaySched = dayTasks[todayKey] || [];
-  const classCount = todaySched.filter(t => t.type === 'course').length;
+  // ── 节课：仅登录时显示课表 ──
   const classBadge = document.getElementById('badgeClass');
-  if (classBadge) classBadge.textContent = classCount + '节课';
+  if (classBadge) {
+    if (USER_ID) {
+      const todaySched = dayTasks[todayKey] || [];
+      const classCount = todaySched.filter(t => t.type === 'course').length;
+      classBadge.textContent = classCount + '节课';
+      classBadge.style.display = '';
+    } else {
+      classBadge.style.display = 'none';
+    }
+  }
 
   // ── Due临近：未归档且距截止 ≤3天（精确匹配 Due 时间线「紧急」分类）──
   let urgentDue = 0;
@@ -6057,6 +6076,15 @@ async function submitAuth() {
   }
 }
 
+// ── 未登录时隐藏课表相关 UI ──
+function updateCourseUIVisibility() {
+  var syncBtn = document.getElementById('syncCalBtn');
+  var addSection = document.getElementById('addCourseSection');
+  if (syncBtn) syncBtn.style.display = USER_ID ? '' : 'none';
+  if (addSection) addSection.style.display = USER_ID ? '' : 'none';
+  if (typeof updateTopbar === 'function') updateTopbar();
+}
+
 // ── 登录成功后的处理 ──
 function onAuthSuccess(userId, username) {
   USER_ID = userId;
@@ -6067,8 +6095,9 @@ function onAuthSuccess(userId, username) {
   var modal = document.getElementById('authModal');
   if (modal) modal.remove();
 
-  // 更新顶栏按钮
+  // 更新顶栏按钮与课表 UI
   updateAuthButton();
+  updateCourseUIVisibility();
 
   showCloudToast('⏳ 正在加载数据...');
   loadFromCloud().then(function(ok) {
@@ -6092,7 +6121,17 @@ function logout() {
   localStorage.removeItem('daybit_username');
   USER_ID = null;
   CURRENT_USERNAME = null;
+  // 清空内存中的用户数据，使界面显示为空
+  dayTasks = {};
+  courseList = [];
+  dayFocusTasks = {};
+  dueTasks = {};
+  if (typeof renderCalendar === 'function') renderCalendar();
+  if (typeof renderDaySchedule === 'function') renderDaySchedule(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+  if (typeof renderTodayFocus === 'function') renderTodayFocus(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+  if (typeof renderAllDueItems === 'function') renderAllDueItems();
   updateAuthButton();
+  updateCourseUIVisibility();
   showCloudToast('👋 已退出登录');
   setTimeout(function(){ showAuthModal(); }, 800);
 }
@@ -6251,7 +6290,8 @@ if (typeof jSaveEntries === 'function') {
 
 (async function() {
   if (!USER_ID) {
-    // 未登录：弹出登录弹窗
+    // 未登录：隐藏课表相关 UI，弹出登录弹窗
+    updateCourseUIVisibility();
     showAuthModal();
   } else {
     // 已登录：直接从云端加载
