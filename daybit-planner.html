@@ -5857,7 +5857,7 @@ function showAuthModal() {
 
       <!-- 切换标签 -->
       <div style="display:flex;background:#f5f2ee;border-radius:12px;padding:3px;margin-bottom:20px;">
-        <button id="tabLogin" onclick="switchAuthTab('login')"
+        <button id="tabLogin" onclick="switchAuthTab('login')" data-active="1"
           style="flex:1;padding:8px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;background:#e8826a;color:#fff;transition:all 0.2s;">
           登录
         </button>
@@ -5984,7 +5984,20 @@ async function submitAuth() {
     var pwHash = await hashPassword(password);
 
     if (isLogin) {
-      // ── 登录：查询 users 表 ──
+      // ── 登录：先查用户名是否存在 ──
+      var { data: userExists } = await _sb.from('users')
+        .select('id')
+        .eq('user_name', username)
+        .maybeSingle();
+
+      if (!userExists) {
+        hint.style.color = '#e87a7a';
+        hint.textContent = '❌ 该用户名未注册，请先注册';
+        submitBtn.textContent = '登录 →'; submitBtn.disabled = false;
+        return;
+      }
+
+      // ── 再校验密码 ──
       var { data, error } = await _sb.from('users')
         .select('id, user_name')
         .eq('user_name', username)
