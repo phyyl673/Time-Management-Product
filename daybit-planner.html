@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daybit — 学生日常规划系统</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #faf8f5;
@@ -5823,6 +5824,154 @@ document.querySelectorAll('.focus-item, .due-item, .sched-item').forEach((el, i)
 if (typeof restoreAiChatUI === 'function' && aiConversationHistory && aiConversationHistory.length > 0) {
   restoreAiChatUI();
 }
+
+// ============================================================
+// Supabase 云同步（任务、Due、求职、购物、心情、AI 对话）
+// 使用你创建的 daybit_data 表，保存后约 3 秒内同步到云端，刷新时优先从云端恢复
+// 表需有 (user_id, module) 唯一约束：Supabase → daybit_data → 添加 Unique 约束
+// ============================================================
+const SUPABASE_URL = 'https://uazdgmrxhvmuswwwxjvw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Zq4yHbDqImTHDtK9-Yy_wg_ihkEdoMV';
+const USER_ID = (function() {
+  var id = localStorage.getItem('daybit_user_id');
+  if (!id) {
+    id = 'user_' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('daybit_user_id', id);
+  }
+  return id;
+})();
+
+var _sb = null;
+try {
+  _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+  console.warn('Supabase 初始化失败', e);
+}
+
+async function syncModule(moduleName, payload) {
+  if (!_sb) return;
+  try {
+    var { error } = await _sb.from('daybit_data').upsert({
+      user_id: USER_ID,
+      module: moduleName,
+      payload: JSON.stringify(payload),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,module' });
+    if (error) {
+      console.warn('云端保存失败 [' + moduleName + ']:', error.message);
+      if (typeof showCloudToast === 'function') showCloudToast('❌ 同步失败: ' + (error.message || '请检查表唯一约束与 RLS'));
+    }
+  } catch(e) {
+    console.warn('云端保存异常:', e);
+    if (typeof showCloudToast === 'function') showCloudToast('❌ 同步异常: ' + (e.message || String(e)));
+  }
+}
+
+var _sbTimers = {};
+function syncModuleDebounced(moduleName, payloadFn) {
+  clearTimeout(_sbTimers[moduleName]);
+  _sbTimers[moduleName] = setTimeout(async function() {
+    await syncModule(moduleName, payloadFn());
+  }, 2000);
+}
+
+async function loadFromCloud() {
+  if (!_sb) return false;
+  try {
+    var { data, error } = await _sb.from('daybit_data').select('*').eq('user_id', USER_ID);
+    if (error || !data || data.length === 0) return false;
+    data.forEach(function(row) {
+      try {
+        var obj = JSON.parse(row.payload);
+        if (row.module === 'tasks') {
+          if (obj.dayTasks) dayTasks = obj.dayTasks;
+          if (obj.dayFocusTasks) dayFocusTasks = obj.dayFocusTasks;
+          if (obj.todayTasks) restoreTodayTasks(obj.todayTasks);
+          if (Array.isArray(obj.courseList)) courseList = obj.courseList;
+          if (Array.isArray(obj.customCategories)) customCategories = obj.customCategories;
+        }
+        if (row.module === 'due') {
+          if (obj.dueItems) restoreDueItems(obj.dueItems);
+        }
+        if (row.module === 'job') {
+          if (obj.jobItems) restoreJobItems(obj.jobItems);
+          if (Array.isArray(obj.jobCategories)) jobCategories = obj.jobCategories;
+        }
+        if (row.module === 'shop') {
+          if (obj.shopItems) restoreShopItems(obj.shopItems);
+        }
+        if (row.module === 'mood') {
+          localStorage.setItem('flowMoodEntries', JSON.stringify(obj));
+        }
+        if (row.module === 'ai') {
+          if (Array.isArray(obj)) aiConversationHistory = obj;
+        }
+      } catch(e) {}
+    });
+    return true;
+  } catch(e) {
+    console.warn('云端读取异常:', e);
+    if (typeof showCloudToast === 'function') showCloudToast('⚠️ 云端加载失败，使用本地数据');
+    return false;
+  }
+}
+
+function showCloudToast(msg) {
+  var t = document.getElementById('cloudToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'cloudToast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(50,50,50,0.85);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:9999;transition:opacity 0.4s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2500);
+}
+
+var _origSave = saveToStorage;
+saveToStorage = function() {
+  _origSave();
+  syncModuleDebounced('tasks', function() { return {
+    dayTasks: dayTasks,
+    dayFocusTasks: dayFocusTasks,
+    todayTasks: serializeTodayTasks(),
+    courseList: courseList,
+    customCategories: customCategories
+  }; });
+  syncModuleDebounced('due', function() { return { dueItems: serializeDueItems() }; });
+  syncModuleDebounced('job', function() { return { jobItems: serializeJobItems(), jobCategories: jobCategories }; });
+  syncModuleDebounced('shop', function() { return { shopItems: serializeShopItems() }; });
+  syncModuleDebounced('ai', function() { return aiConversationHistory; });
+};
+
+if (typeof jSaveEntries === 'function') {
+  var _origJSave = jSaveEntries;
+  jSaveEntries = function(arr) {
+    _origJSave(arr);
+    syncModuleDebounced('mood', function() { return arr; });
+  };
+}
+
+(async function() {
+  showCloudToast('⏳ 正在从云端加载数据...');
+  var ok = await loadFromCloud();
+  if (ok) {
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof renderDaySchedule === 'function') renderDaySchedule(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+    if (typeof renderTodayFocus === 'function') renderTodayFocus(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+    if (typeof renderAllDueItems === 'function') renderAllDueItems();
+    if (typeof renderDueCoursePickerList === 'function') renderDueCoursePickerList();
+    if (typeof updateTopbar === 'function') updateTopbar();
+    if (typeof updateShopCount === 'function') updateShopCount();
+    if (typeof jRenderAll === 'function') jRenderAll();
+    if (typeof restoreAiChatUI === 'function') restoreAiChatUI();
+    showCloudToast('✅ 云端数据加载成功');
+  } else {
+    showCloudToast('📱 使用本地数据');
+  }
+})();
 </script>
 </body>
 </html>
