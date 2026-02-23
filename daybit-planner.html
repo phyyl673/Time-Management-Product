@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daybit — 学生日常规划系统</title>
+<title>Daybit — 你的随身小本本</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -5378,7 +5378,7 @@ function buildSystemPrompt() {
   }
   const shopList = document.getElementById('shopList');
   const pendingShop = shopList ? Array.from(shopList.querySelectorAll('.shop-item:not(.done)')).map(el=>el.textContent.trim()).join('，') : '';
-  return `你是 Daybit AI，专为在校大学生设计的智能规划助手。用中文回复，语气友好专业。\n今天是 ${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日。\n\n用户待办任务：\n${allTasks.length>0?allTasks.join('\n'):'暂无'}\n\n长期任务(Due时间线)：\n${dueTaskList.length>0?dueTaskList.join('\n'):'暂无'}\n\n购物清单待购：${pendingShop||'暂无'}\n\n【必须遵守的动作格式，这样网站才会真正执行】\n1. 当用户说「我今天需要xxx」「今天要xxx」「帮我加入今日待办」或明确同意加入待办时，你必须在回复中包含：<!--FLOW_ACTION:{"focus_add":[{"title":"任务名"}]}--> 可多个任务：{"focus_add":[{"title":"A"},{"title":"B","category":"生活"}]}，category 可选：生活/课程/求职。网站会真实加入「今日聚焦」待办。\n2. 若用户只说「我今天需要xxx」尚未明确说加待办，你可先问一句「需要帮你加入今日待办吗？」用户说好/加/可以 后再回复并带上上述 focus_add。\n3. 当用户说「添加到购物清单」「帮我买xxx」时，回复中包含：<!--FLOW_ACTION:{"shop_add":["物品1","物品2"]}-->。\n4. 当用户要求「加到 Due」「添加进 Due」时，回复末尾附加：<!--TASK_PLAN:{"title":"计划名","tasks":[{"name":"步骤名","week":"时间"},...]}--> 并提醒点击「一键导入」。\n5. 先简短回复，再输出标签。FLOW_ACTION 与 TASK_PLAN 可同时存在。`;
+  return `你是 Daybit AI，专为需要管理复杂日程的人设计的智能规划助手。用中文回复，语气友好专业。\n今天是 ${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日。\n\n用户待办任务：\n${allTasks.length>0?allTasks.join('\n'):'暂无'}\n\n长期任务(Due时间线)：\n${dueTaskList.length>0?dueTaskList.join('\n'):'暂无'}\n\n购物清单待购：${pendingShop||'暂无'}\n\n【必须遵守的动作格式，这样网站才会真正执行】\n1. 当用户说「我今天需要xxx」「今天要xxx」「帮我加入今日待办」或明确同意加入待办时，你必须在回复中包含：<!--FLOW_ACTION:{"focus_add":[{"title":"任务名"}]}--> 可多个任务：{"focus_add":[{"title":"A"},{"title":"B","category":"生活"}]}，category 可选：生活/课程/求职。网站会真实加入「今日聚焦」待办。\n2. 若用户只说「我今天需要xxx」尚未明确说加待办，你可先问一句「需要帮你加入今日待办吗？」用户说好/加/可以 后再回复并带上上述 focus_add。\n3. 当用户说「添加到购物清单」「帮我买xxx」时，回复中包含：<!--FLOW_ACTION:{"shop_add":["物品1","物品2"]}-->。\n4. 当用户要求「加到 Due」「添加进 Due」时，回复末尾附加：<!--TASK_PLAN:{"title":"计划名","tasks":[{"name":"步骤名","week":"时间"},...]}--> 并提醒点击「一键导入」。\n5. 先简短回复，再输出标签。FLOW_ACTION 与 TASK_PLAN 可同时存在。`;
 }
 
 function autoResize(el) {
@@ -5826,20 +5826,291 @@ if (typeof restoreAiChatUI === 'function' && aiConversationHistory && aiConversa
 }
 
 // ============================================================
-// Supabase 云同步（任务、Due、求职、购物、心情、AI 对话）
-// 使用你创建的 daybit_data 表，保存后约 3 秒内同步到云端，刷新时优先从云端恢复
-// 表需有 (user_id, module) 唯一约束：Supabase → daybit_data → 添加 Unique 约束
+// Daybit 登录系统 + Supabase 云同步
+// users 表存账号，daybit_data 表存数据，通过 user_id (uuid) 关联
 // ============================================================
 const SUPABASE_URL = 'https://uazdgmrxhvmuswwwxjvw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Zq4yHbDqImTHDtK9-Yy_wg_ihkEdoMV';
-const USER_ID = (function() {
-  var id = localStorage.getItem('daybit_user_id');
-  if (!id) {
-    id = 'user_' + Math.random().toString(36).slice(2, 10);
-    localStorage.setItem('daybit_user_id', id);
+
+var USER_ID = localStorage.getItem('daybit_user_id') || null;
+var CURRENT_USERNAME = localStorage.getItem('daybit_username') || null;
+
+// ── 密码哈希（简单 SHA-256）──
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── 登录弹窗 ──
+function showAuthModal() {
+  if (document.getElementById('authModal')) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'authModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(60,45,35,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:24px;padding:32px 28px 24px;width:360px;max-width:94vw;box-shadow:0 16px 48px rgba(100,80,60,0.22);font-family:'Noto Sans SC',sans-serif;">
+      <div style="font-size:22px;font-weight:800;color:#e8826a;margin-bottom:4px;font-family:'Nunito',sans-serif;text-align:center;">✦ Daybit</div>
+      <div style="font-size:12px;color:#a89c8e;text-align:center;margin-bottom:24px;">你的随身小本本</div>
+
+      <!-- 切换标签 -->
+      <div style="display:flex;background:#f5f2ee;border-radius:12px;padding:3px;margin-bottom:20px;">
+        <button id="tabLogin" onclick="switchAuthTab('login')"
+          style="flex:1;padding:8px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;background:#e8826a;color:#fff;transition:all 0.2s;">
+          登录
+        </button>
+        <button id="tabRegister" onclick="switchAuthTab('register')"
+          style="flex:1;padding:8px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;background:transparent;color:#a89c8e;transition:all 0.2s;">
+          注册
+        </button>
+      </div>
+
+      <!-- 用户名 -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:#7a6e64;font-weight:600;margin-bottom:5px;">用户名</div>
+        <input id="authUsername" placeholder="输入用户名" autocomplete="username"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e8e2d9;border-radius:12px;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none;box-sizing:border-box;transition:border 0.2s;"
+          onfocus="this.style.borderColor='#e8826a'" onblur="this.style.borderColor='#e8e2d9'"
+          onkeydown="if(event.key==='Enter')document.getElementById('authPassword').focus()">
+      </div>
+
+      <!-- 密码 -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:#7a6e64;font-weight:600;margin-bottom:5px;">密码</div>
+        <div style="position:relative;">
+          <input id="authPassword" type="password" placeholder="输入密码" autocomplete="current-password"
+            style="width:100%;padding:11px 40px 11px 14px;border:1.5px solid #e8e2d9;border-radius:12px;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none;box-sizing:border-box;transition:border 0.2s;"
+            onfocus="this.style.borderColor='#e8826a'" onblur="this.style.borderColor='#e8e2d9'"
+            onkeydown="if(event.key==='Enter' && document.getElementById('authConfirmWrapper').style.display!=='none')document.getElementById('authConfirmPassword').focus(); else if(event.key==='Enter')submitAuth()">
+          <span onclick="togglePwVisibility('authPassword','eyeIcon1')" id="eyeIcon1"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;user-select:none;opacity:0.5;">👁</span>
+        </div>
+      </div>
+
+      <!-- 确认密码（仅注册时显示） -->
+      <div id="authConfirmWrapper" style="display:none;margin-bottom:12px;">
+        <div style="font-size:11px;color:#7a6e64;font-weight:600;margin-bottom:5px;">确认密码</div>
+        <div style="position:relative;">
+          <input id="authConfirmPassword" type="password" placeholder="请再输入一次密码"
+            style="width:100%;padding:11px 40px 11px 14px;border:1.5px solid #e8e2d9;border-radius:12px;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none;box-sizing:border-box;transition:border 0.2s;"
+            onfocus="this.style.borderColor='#e8826a'" onblur="this.style.borderColor='#e8e2d9'"
+            onkeydown="if(event.key==='Enter')submitAuth()">
+          <span onclick="togglePwVisibility('authConfirmPassword','eyeIcon2')" id="eyeIcon2"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;user-select:none;opacity:0.5;">👁</span>
+        </div>
+      </div>
+
+      <!-- 提示信息 -->
+      <div id="authHint" style="font-size:11px;color:#a89c8e;min-height:18px;margin-bottom:14px;padding-left:2px;"></div>
+
+      <!-- 按钮 -->
+      <button id="authSubmitBtn" onclick="submitAuth()"
+        style="width:100%;padding:12px;background:#e8826a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all 0.2s;"
+        onmouseover="this.style.background='#d4735c'" onmouseout="this.style.background='#e8826a'">
+        登录 →
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(function(){ var inp = document.getElementById('authUsername'); if(inp) inp.focus(); }, 80);
+}
+
+// ── 显示/隐藏密码 ──
+function togglePwVisibility(inputId, iconId) {
+  var input = document.getElementById(inputId);
+  var icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) { icon.style.opacity = '1'; }
+  } else {
+    input.type = 'password';
+    if (icon) { icon.style.opacity = '0.5'; }
   }
-  return id;
-})();
+}
+
+// ── 切换登录/注册标签 ──
+function switchAuthTab(tab) {
+  var loginBtn = document.getElementById('tabLogin');
+  var registerBtn = document.getElementById('tabRegister');
+  var submitBtn = document.getElementById('authSubmitBtn');
+  var hint = document.getElementById('authHint');
+  var confirmWrapper = document.getElementById('authConfirmWrapper');
+  if (!loginBtn) return;
+  if (tab === 'login') {
+    loginBtn.style.background = '#e8826a'; loginBtn.style.color = '#fff';
+    registerBtn.style.background = 'transparent'; registerBtn.style.color = '#a89c8e';
+    submitBtn.textContent = '登录 →';
+    if (hint) hint.textContent = '';
+    if (confirmWrapper) confirmWrapper.style.display = 'none';
+    loginBtn.dataset.active = '1';
+    delete registerBtn.dataset.active;
+  } else {
+    registerBtn.style.background = '#e8826a'; registerBtn.style.color = '#fff';
+    loginBtn.style.background = 'transparent'; loginBtn.style.color = '#a89c8e';
+    submitBtn.textContent = '注册并登录 →';
+    if (hint) { hint.style.color='#a89c8e'; hint.textContent = '💡 用户名和密码注册后不可更改，请记好'; }
+    if (confirmWrapper) confirmWrapper.style.display = 'block';
+    registerBtn.dataset.active = '1';
+    delete loginBtn.dataset.active;
+  }
+}
+
+// ── 提交登录或注册 ──
+async function submitAuth() {
+  var username = (document.getElementById('authUsername').value || '').trim();
+  var password = (document.getElementById('authPassword').value || '').trim();
+  var hint = document.getElementById('authHint');
+  var submitBtn = document.getElementById('authSubmitBtn');
+  var isLogin = !!document.getElementById('tabLogin').dataset.active;
+
+  if (!username) { hint.style.color='#e87a7a'; hint.textContent = '⚠️ 请输入用户名'; return; }
+  if (!password) { hint.style.color='#e87a7a'; hint.textContent = '⚠️ 请输入密码'; return; }
+  if (!isLogin && password.length < 6) { hint.style.color='#e87a7a'; hint.textContent = '⚠️ 密码至少6位'; return; }
+  if (!isLogin) {
+    var confirm = (document.getElementById('authConfirmPassword').value || '').trim();
+    if (!confirm) { hint.style.color='#e87a7a'; hint.textContent = '⚠️ 请确认密码'; return; }
+    if (confirm !== password) { hint.style.color='#e87a7a'; hint.textContent = '❌ 两次密码不一致，请重新输入'; document.getElementById('authConfirmPassword').value=''; return; }
+  }
+
+  submitBtn.textContent = '请稍候...';
+  submitBtn.disabled = true;
+  hint.style.color = '#a89c8e';
+  hint.textContent = '';
+
+  try {
+    var pwHash = await hashPassword(password);
+
+    if (isLogin) {
+      // ── 登录：查询 users 表 ──
+      var { data, error } = await _sb.from('users')
+        .select('id, user_name')
+        .eq('user_name', username)
+        .eq('password_hash', pwHash)
+        .single();
+
+      if (error || !data) {
+        hint.style.color = '#e87a7a';
+        hint.textContent = '❌ 用户名或密码错误';
+        submitBtn.textContent = '登录 →'; submitBtn.disabled = false;
+        return;
+      }
+      // 登录成功
+      onAuthSuccess(data.id, data.user_name);
+
+    } else {
+      // ── 注册：检查用户名是否已存在 ──
+      var { data: existing } = await _sb.from('users')
+        .select('id')
+        .eq('user_name', username)
+        .single();
+
+      if (existing) {
+        hint.style.color = '#e87a7a';
+        hint.textContent = '❌ 用户名已被占用，请换一个';
+        submitBtn.textContent = '注册并登录 →'; submitBtn.disabled = false;
+        return;
+      }
+
+      // 插入新用户
+      var { data: newUser, error: insertError } = await _sb.from('users')
+        .insert({ user_name: username, password_hash: pwHash })
+        .select('id, user_name')
+        .single();
+
+      if (insertError || !newUser) {
+        hint.style.color = '#e87a7a';
+        hint.textContent = '❌ 注册失败，请重试';
+        submitBtn.textContent = '注册并登录 →'; submitBtn.disabled = false;
+        return;
+      }
+      // 注册成功，自动登录
+      onAuthSuccess(newUser.id, newUser.user_name);
+    }
+  } catch(e) {
+    hint.style.color = '#e87a7a';
+    hint.textContent = '❌ 网络错误，请重试';
+    submitBtn.textContent = isLogin ? '登录 →' : '注册并登录 →';
+    submitBtn.disabled = false;
+  }
+}
+
+// ── 登录成功后的处理 ──
+function onAuthSuccess(userId, username) {
+  USER_ID = userId;
+  CURRENT_USERNAME = username;
+  localStorage.setItem('daybit_user_id', userId);
+  localStorage.setItem('daybit_username', username);
+
+  var modal = document.getElementById('authModal');
+  if (modal) modal.remove();
+
+  // 更新顶栏按钮
+  updateAuthButton();
+
+  showCloudToast('⏳ 正在加载数据...');
+  loadFromCloud().then(function(ok) {
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof renderDaySchedule === 'function') renderDaySchedule(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+    if (typeof renderTodayFocus === 'function') renderTodayFocus(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+    if (typeof renderAllDueItems === 'function') renderAllDueItems();
+    if (typeof renderDueCoursePickerList === 'function') renderDueCoursePickerList();
+    if (typeof updateTopbar === 'function') updateTopbar();
+    if (typeof updateShopCount === 'function') updateShopCount();
+    if (typeof jRenderAll === 'function') jRenderAll();
+    if (typeof restoreAiChatUI === 'function') restoreAiChatUI();
+    showCloudToast(ok ? ('✅ 欢迎回来，' + username + '！') : ('👋 欢迎，' + username + '！'));
+  });
+}
+
+// ── 退出登录 ──
+function logout() {
+  if (!confirm('确定要退出登录吗？')) return;
+  localStorage.removeItem('daybit_user_id');
+  localStorage.removeItem('daybit_username');
+  USER_ID = null;
+  CURRENT_USERNAME = null;
+  updateAuthButton();
+  showCloudToast('👋 已退出登录');
+  setTimeout(function(){ showAuthModal(); }, 800);
+}
+
+// ── 顶栏登录/用户按钮 ──
+function updateAuthButton() {
+  var btn = document.getElementById('authTopBtn');
+  if (!btn) return;
+  if (CURRENT_USERNAME) {
+    btn.textContent = '👤 ' + CURRENT_USERNAME;
+    btn.title = '点击退出登录';
+    btn.onclick = logout;
+    btn.style.color = '#e8826a';
+    btn.style.borderColor = 'rgba(232,130,106,0.4)';
+    btn.style.background = 'rgba(232,130,106,0.08)';
+  } else {
+    btn.textContent = '🔑 登录';
+    btn.title = '点击登录';
+    btn.onclick = showAuthModal;
+    btn.style.color = '#a89c8e';
+    btn.style.borderColor = '#e8e2d9';
+    btn.style.background = '#f5f2ee';
+  }
+}
+
+// ── 页面加载后在顶栏插入登录按钮 ──
+document.addEventListener('DOMContentLoaded', function() {
+  var topbarRight = document.querySelector('.topbar-right');
+  if (topbarRight) {
+    var btn = document.createElement('button');
+    btn.id = 'authTopBtn';
+    btn.style.cssText = 'font-size:11px;color:#a89c8e;background:#f5f2ee;border:1.5px solid #e8e2d9;border-radius:10px;padding:5px 12px;cursor:pointer;font-family:"Noto Sans SC",sans-serif;transition:all 0.2s;font-weight:600;';
+    btn.onmouseover = function(){ this.style.opacity='0.8'; };
+    btn.onmouseout  = function(){ this.style.opacity='1'; };
+    topbarRight.insertBefore(btn, topbarRight.firstChild);
+    updateAuthButton();
+  }
+});
 
 var _sb = null;
 try {
@@ -5955,21 +6226,27 @@ if (typeof jSaveEntries === 'function') {
 }
 
 (async function() {
-  showCloudToast('⏳ 正在从云端加载数据...');
-  var ok = await loadFromCloud();
-  if (ok) {
-    if (typeof renderCalendar === 'function') renderCalendar();
-    if (typeof renderDaySchedule === 'function') renderDaySchedule(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
-    if (typeof renderTodayFocus === 'function') renderTodayFocus(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
-    if (typeof renderAllDueItems === 'function') renderAllDueItems();
-    if (typeof renderDueCoursePickerList === 'function') renderDueCoursePickerList();
-    if (typeof updateTopbar === 'function') updateTopbar();
-    if (typeof updateShopCount === 'function') updateShopCount();
-    if (typeof jRenderAll === 'function') jRenderAll();
-    if (typeof restoreAiChatUI === 'function') restoreAiChatUI();
-    showCloudToast('✅ 云端数据加载成功');
+  if (!USER_ID) {
+    // 未登录：弹出登录弹窗
+    showAuthModal();
   } else {
-    showCloudToast('📱 使用本地数据');
+    // 已登录：直接从云端加载
+    showCloudToast('⏳ 正在从云端加载数据...');
+    var ok = await loadFromCloud();
+    if (ok) {
+      if (typeof renderCalendar === 'function') renderCalendar();
+      if (typeof renderDaySchedule === 'function') renderDaySchedule(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+      if (typeof renderTodayFocus === 'function') renderTodayFocus(typeof selectedDateKey !== 'undefined' ? selectedDateKey : getTodayKey());
+      if (typeof renderAllDueItems === 'function') renderAllDueItems();
+      if (typeof renderDueCoursePickerList === 'function') renderDueCoursePickerList();
+      if (typeof updateTopbar === 'function') updateTopbar();
+      if (typeof updateShopCount === 'function') updateShopCount();
+      if (typeof jRenderAll === 'function') jRenderAll();
+      if (typeof restoreAiChatUI === 'function') restoreAiChatUI();
+      showCloudToast('✅ 欢迎回来，' + CURRENT_USERNAME + '！');
+    } else {
+      showCloudToast('📱 使用本地数据');
+    }
   }
 })();
 </script>
