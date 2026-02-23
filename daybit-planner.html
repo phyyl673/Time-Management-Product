@@ -369,6 +369,9 @@
   }
 
   .sched-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: var(--surface);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
@@ -382,6 +385,31 @@
   .sched-item.due { border-color: var(--red); }
   .sched-item.task { border-color: var(--green); }
   .sched-item.job { border-color: var(--orange); }
+
+  .sched-item-content { flex: 1; min-width: 0; }
+  .sched-item-del {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: var(--surface3);
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+  }
+  .sched-item:hover .sched-item-del,
+  .sched-item.selected .sched-item-del { opacity: 1; }
+  .sched-item-del:hover {
+    background: var(--red-dim);
+    color: var(--red);
+  }
 
   .sched-time {
     font-size: 10px;
@@ -2812,10 +2840,10 @@ function renderDaySchedule(dateKey) {
 
   list.innerHTML = '';
   // 未登录不显示任何日程/课表，仅登录用户显示该用户的数据
-  let tasks = USER_ID ? (dayTasks[dateKey] || []).slice() : [];
-  tasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  const raw = USER_ID ? (dayTasks[dateKey] || []).slice() : [];
+  const sortedIndices = raw.map((_, i) => i).sort((a, b) => (raw[a].time || '').localeCompare(raw[b].time || ''));
 
-  if (!tasks.length) {
+  if (!raw.length) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.textContent = '这一天还没有安排任务';
@@ -2823,16 +2851,41 @@ function renderDaySchedule(dateKey) {
     return;
   }
 
-  tasks.forEach(t => {
+  sortedIndices.forEach(origIdx => {
+    const t = raw[origIdx];
     const item = document.createElement('div');
     item.className = 'sched-item ' + (t.type || 'task');
+    const timeEsc = (t.time || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const nameEsc = (t.name || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const tagEsc = (t.tag || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     item.innerHTML = `
-      <div class="sched-time">${t.time}</div>
-      <div class="sched-name">${t.name}</div>
-      <div class="sched-tag">${t.tag || ''}</div>
+      <div class="sched-item-content">
+        <div class="sched-time">${timeEsc}</div>
+        <div class="sched-name">${nameEsc}</div>
+        <div class="sched-tag">${tagEsc}</div>
+      </div>
+      <button type="button" class="sched-item-del" title="删除该日程" onclick="event.stopPropagation(); deleteScheduleItem('${dateKey}', ${origIdx});">×</button>
     `;
+    item.onclick = () => {
+      list.querySelectorAll('.sched-item.selected').forEach(el => el.classList.remove('selected'));
+      item.classList.add('selected');
+    };
     list.appendChild(item);
   });
+}
+
+// 删除某日某条日程（按索引）
+function deleteScheduleItem(dateKey, index) {
+  if (!USER_ID) return;
+  const arr = dayTasks[dateKey];
+  if (!arr || index < 0 || index >= arr.length) return;
+  arr.splice(index, 1);
+  if (arr.length === 0) delete dayTasks[dateKey];
+  renderDaySchedule(dateKey);
+  renderCalendar();
+  saveToStorage();
+  updateTopbar();
+  showToast('已删除该日程');
 }
 
 // 处理 Apple Calendar 导出的 .ics 文件
